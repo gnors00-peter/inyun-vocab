@@ -1,0 +1,2067 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>인윤 영어 단어장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-a: #eaf5ff;
+    --bg-b: #fdf6ff;
+    --paper: #eef6ff;
+    --paper-line: rgba(74, 144, 226, 0.06);
+    --surface: #ffffff;
+    --ink: #2c3a5c;
+    --muted: #8a99ba;
+    --card-a: #7fc1ff;
+    --card-b: #4d94ec;
+    --card-back-a: #fff2f8;
+    --card-back-b: #ffdcec;
+    --accent: #4d94ec;
+    --accent-ink: #ffffff;
+    --accent-2: #ff8fb8;
+    --good: #33c98d;
+    --bad: #ff6f8e;
+    --border: rgba(77, 148, 236, 0.18);
+    --shadow: rgba(77, 148, 236, 0.2);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg-a: #0f1730;
+      --bg-b: #1b1330;
+      --paper: #121a33;
+      --paper-line: rgba(255, 255, 255, 0.04);
+      --surface: #1c2646;
+      --ink: #eaf1ff;
+      --muted: #8fa1cc;
+      --card-a: #4d7fd6;
+      --card-b: #2f56a8;
+      --card-back-a: #3a2140;
+      --card-back-b: #2a1830;
+      --accent: #6fb1f0;
+      --accent-ink: #10182b;
+      --good: #4fdba0;
+      --bad: #ff8aa0;
+      --border: rgba(255, 255, 255, 0.14);
+      --shadow: rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg-a: #0f1730;
+    --bg-b: #1b1330;
+    --paper: #121a33;
+    --paper-line: rgba(255, 255, 255, 0.04);
+    --surface: #1c2646;
+    --ink: #eaf1ff;
+    --muted: #8fa1cc;
+    --card-a: #4d7fd6;
+    --card-b: #2f56a8;
+    --card-back-a: #3a2140;
+    --card-back-b: #2a1830;
+    --accent: #6fb1f0;
+    --accent-ink: #10182b;
+    --good: #4fdba0;
+    --bad: #ff8aa0;
+    --border: rgba(255, 255, 255, 0.14);
+    --shadow: rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(circle at 12% 8%, var(--bg-a) 0%, transparent 45%),
+      radial-gradient(circle at 90% 0%, var(--bg-b) 0%, transparent 40%),
+      radial-gradient(var(--paper-line) 1.6px, transparent 1.6px);
+    background-size: auto, auto, 22px 22px;
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: "Jua", "IBM Plex Sans KR", sans-serif; text-wrap: balance; margin: 0; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 20px 64px;
+  }
+
+  header.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  header.top .title { display: flex; align-items: center; gap: 10px; }
+  header.top .title span:first-child {
+    font-size: 26px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px var(--shadow);
+  }
+  header.top h1 { font-size: 22px; letter-spacing: 0; color: var(--accent); }
+  header.top .subtitle {
+    color: var(--muted);
+    font-size: 11.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-weight: 700;
+  }
+
+  nav.tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 14px var(--shadow);
+  }
+  nav.tabs button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 12.5px;
+    padding: 9px 4px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, transform 0.12s;
+  }
+  nav.tabs button:hover { background: var(--paper-line); transform: translateY(-1px); }
+  nav.tabs button.active {
+    background: linear-gradient(135deg, var(--card-a), var(--card-b));
+    color: #fff;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 13px 14px;
+    box-shadow: 0 3px 10px var(--shadow);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .stat:hover { transform: translateY(-2px); }
+  .stat:active { transform: scale(0.98); }
+  .stat::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--card-a), var(--card-b));
+  }
+  .stat.good::before { background: linear-gradient(90deg, #7ce8bb, var(--good)); }
+  .stat.bad::before { background: linear-gradient(90deg, #ffb0c1, var(--bad)); }
+  .stat .n { font-family: "JetBrains Mono"; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11.5px; color: var(--muted); margin-top: 2px; font-weight: 600; }
+  .stat.good .n { color: var(--good); }
+  .stat.bad .n { color: var(--bad); }
+
+  section { display: none; }
+  section.active { display: block; }
+
+  /* ---- Study (flashcard) ---- */
+  .deck-empty, .quiz-empty {
+    background: var(--surface);
+    border: 2px dashed var(--border);
+    border-radius: 22px;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .card-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .progress-line {
+    font-family: "JetBrains Mono";
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--accent);
+    align-self: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+  .flashcard {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 320px;
+    perspective: 1400px;
+    cursor: pointer;
+  }
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+    transform-style: preserve-3d;
+  }
+  .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 26px;
+    background: linear-gradient(150deg, var(--card-a), var(--card-b));
+    background-image: linear-gradient(150deg, var(--card-a), var(--card-b)), radial-gradient(circle at 88% 10%, rgba(255,255,255,0.4), transparent 45%);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    overflow-y: auto;
+    box-shadow: 0 14px 30px var(--shadow), inset 0 0 0 3px rgba(255,255,255,0.35);
+  }
+  .face::after {
+    content: "✦";
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    font-size: 16px;
+    color: rgba(255,255,255,0.65);
+  }
+  .face.back {
+    transform: rotateY(180deg);
+    background: linear-gradient(150deg, var(--card-back-a), var(--card-back-b));
+    background-image: linear-gradient(150deg, var(--card-back-a), var(--card-back-b)), radial-gradient(circle at 12% 90%, rgba(255,255,255,0.5), transparent 45%);
+    color: var(--ink);
+  }
+  .face .word { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: clamp(42px, 9vw, 66px); letter-spacing: 0.02em; text-shadow: 0 2px 0 rgba(0,0,0,0.08); }
+  .face .meaning { font-family: "Jua"; font-weight: 400; font-size: clamp(33px, 7.5vw, 48px); }
+  .face .example { margin-top: 12px; font-size: 20px; line-height: 1.35; color: var(--muted); max-width: 90%; }
+  .face.back .example { color: color-mix(in srgb, var(--ink) 65%, transparent); }
+  .face .hint { position: absolute; bottom: 14px; font-size: 11px; color: rgba(255,255,255,0.85); letter-spacing: 0.03em; font-weight: 700; }
+  .face.back .hint { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+  .speak-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: #fff;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .speak-btn:hover { background: rgba(255,255,255,0.45); }
+
+  .judge-row { display: flex; gap: 10px; width: 100%; }
+  .judge-row button {
+    flex: 1;
+    padding: 14px;
+    border-radius: 999px;
+    border: none;
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 14.5px;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 0 4px 12px var(--shadow);
+    transition: transform 0.12s;
+  }
+  .judge-row button.know { background: linear-gradient(135deg, #7ce8bb, var(--good)); }
+  .judge-row button.dont { background: linear-gradient(135deg, #ffb0c1, var(--bad)); }
+  .judge-row button:hover { transform: translateY(-2px) scale(1.02); }
+  .judge-row button:active { transform: scale(0.98); }
+
+  .day-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 11px 16px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  .day-banner .mono { color: var(--accent); font-weight: 700; }
+  .mini-btn {
+    border: none;
+    background: linear-gradient(135deg, var(--card-a), var(--card-b));
+    color: #fff;
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 11.5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 3px 8px var(--shadow);
+  }
+  .mini-btn:hover { filter: brightness(1.08); }
+
+  /* ---- Quiz ---- */
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 26px;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+  .quiz-prompt { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; font-weight: 700; }
+  .quiz-word { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: 34px; margin-bottom: 20px; color: var(--accent); }
+  .choices { display: grid; gap: 10px; }
+  .choice-btn {
+    text-align: left;
+    padding: 13px 16px;
+    border-radius: 14px;
+    border: 2px solid var(--border);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: 17px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .choice-btn:hover { border-color: var(--accent); transform: translateX(2px); }
+  .choice-btn.correct { background: color-mix(in srgb, var(--good) 20%, var(--surface)); border-color: var(--good); }
+  .choice-btn.wrong { background: color-mix(in srgb, var(--bad) 20%, var(--surface)); border-color: var(--bad); }
+  .choice-btn[disabled] { cursor: default; }
+  .quiz-next {
+    margin-top: 16px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--card-a), var(--card-b));
+    color: #fff;
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+  .quiz-score { font-family: "JetBrains Mono"; font-size: 13px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+
+  .quiz-mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  .quiz-mode-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 12.5px;
+    padding: 9px 4px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+  }
+  .quiz-mode-toggle button.active {
+    background: linear-gradient(135deg, var(--card-a), var(--card-b));
+    color: #fff;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+
+  .quiz-result-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .spell-hint { font-size: 15px; color: var(--muted); font-weight: 700; }
+  .spell-input-row { display: flex; gap: 8px; margin-top: 4px; }
+  .spell-input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Chakra Petch", "JetBrains Mono", monospace;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .spell-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .spell-input.ok { border-color: var(--good); }
+  .spell-input.bad { border-color: var(--bad); }
+  .spell-input:disabled { opacity: 0.8; }
+  .spell-submit {
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--card-a), var(--card-b));
+    color: #fff;
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+  .spell-submit:disabled { opacity: 0.55; cursor: default; }
+  .spell-feedback { margin-top: 12px; font-size: 14px; font-weight: 700; min-height: 20px; }
+  .spell-feedback.ok { color: var(--good); font-size: 18px; }
+  .spell-feedback.bad { color: var(--bad); font-size: 18px; }
+
+  .qr-wrap { margin-top: 16px; }
+  .qr-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+  .qr-col { min-width: 0; }
+  .qr-section-title { font-size: 12.5px; font-weight: 700; margin: 0 0 8px; }
+  .qr-section-title.bad { color: var(--bad); }
+  .qr-section-title.ok { color: var(--good); }
+  .qr-list { display: flex; flex-direction: column; gap: 6px; }
+  .qr-item {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 10px;
+    box-shadow: 0 4px 10px var(--shadow);
+    min-width: 0;
+  }
+  .qr-item.bad { border-left: 4px solid var(--bad); }
+  .qr-item.ok { border-left: 4px solid var(--good); }
+  .qr-item .qr-w { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: 17px; color: var(--ink); overflow-wrap: break-word; }
+  .qr-item .qr-m { font-size: 14.5px; color: var(--muted); overflow-wrap: break-word; }
+  .qr-item .qr-chosen { color: var(--bad); font-size: 12px; }
+  .qr-empty { font-size: 13px; color: var(--muted); padding: 6px 2px; }
+
+  /* ---- List ---- */
+  .list-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .list-title .count { font-family: "JetBrains Mono"; color: var(--accent); font-size: 13px; font-weight: 700; }
+  .list-search {
+    width: 100%;
+    padding: 11px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    margin-bottom: 14px;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  #listBody, #historyBody { max-height: 60vh; overflow-y: auto; border-radius: 16px; }
+  .word-table-wrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .word-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .word-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--paper);
+    padding: 9px 12px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  .word-table td {
+    padding: 9px 12px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .word-table tr:first-child td { border-top: none; }
+  .word-table .w { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: 15px; color: var(--accent); white-space: nowrap; }
+  .word-table .m { color: var(--ink); min-width: 120px; }
+  .word-table .ex { display: block; font-size: 12px; line-height: 1.35; color: var(--muted); margin-top: 3px; }
+  .word-table .cnt { font-family: "JetBrains Mono", monospace; font-size: 12.5px; text-align: center; white-space: nowrap; }
+  .word-table .cnt.ok { color: var(--good); }
+  .word-table .cnt.bad { color: var(--bad); }
+  .word-table .row-actions { display: flex; gap: 4px; white-space: nowrap; }
+  .badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge.mastered { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--good); }
+  .badge.learning { background: color-mix(in srgb, var(--accent-2) 25%, transparent); color: color-mix(in srgb, var(--accent-2) 70%, var(--ink)); }
+  .row-actions { display: flex; gap: 4px; }
+  .icon-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 15px;
+    padding: 5px 7px;
+    border-radius: 999px;
+  }
+  .icon-btn:hover { background: var(--paper-line); color: var(--ink); }
+
+  /* ---- Confirm modal (browser confirm()/alert() don't run inside the artifact sandbox) ---- */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 25, 45, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .confirm-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 22px;
+    max-width: 320px;
+    width: 100%;
+    box-shadow: 0 12px 30px var(--shadow);
+    text-align: center;
+  }
+  .confirm-box p { margin: 0 0 18px; font-size: 14.5px; color: var(--ink); font-weight: 600; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-actions button {
+    flex: 1;
+    padding: 11px;
+    border-radius: 999px;
+    border: none;
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .confirm-actions .cancel { background: var(--paper); color: var(--ink); border: 1px solid var(--border); }
+  .confirm-actions .ok { background: linear-gradient(135deg, #ffb0c1, var(--bad)); color: #fff; }
+
+  /* ---- Photo-review modal ---- */
+  .review-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 20px;
+    max-width: 420px;
+    width: 100%;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 30px var(--shadow);
+  }
+  .review-box h3 { font-size: 15px; color: var(--ink); margin-bottom: 4px; }
+  .review-box .review-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
+  .review-list { overflow-y: auto; flex: 1; margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .review-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+  .review-item input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; width: 17px; height: 17px; }
+  .review-item .rw { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: 15px; color: var(--ink); }
+  .review-item .rm { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .review-item .rex { font-size: 11.5px; color: var(--accent); margin-top: 3px; font-style: italic; }
+  .review-item.dup { opacity: 0.55; }
+  .review-item .dup-tag { font-size: 10.5px; color: var(--bad); font-weight: 700; margin-top: 2px; }
+  .review-loading { text-align: center; padding: 30px 10px; font-size: 13.5px; color: var(--muted); font-weight: 700; }
+  .review-empty { text-align: center; padding: 20px 10px; font-size: 13.5px; color: var(--muted); }
+
+  /* ---- Add ---- */
+  .add-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field textarea {
+    width: 100%;
+    padding: 11px 15px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+    font-size: 14.5px;
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus, .list-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .submit-btn {
+    padding: 12px 22px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--card-a), var(--card-b));
+    color: #fff;
+    font-family: "Jua", "IBM Plex Sans KR", sans-serif;
+    font-size: 14.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+  .submit-btn:hover { filter: brightness(1.06); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-row .submit-btn { flex: 1; min-width: 140px; }
+  .submit-btn.secondary {
+    background: var(--paper);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    box-shadow: none;
+  }
+  .submit-btn.secondary:hover { filter: brightness(0.97); }
+  .submit-btn:disabled { opacity: 0.55; cursor: default; filter: none; }
+  .toast {
+    font-size: 13px;
+    color: var(--good);
+    margin-top: 10px;
+    min-height: 18px;
+    font-weight: 700;
+  }
+  .empty-state { text-align: center; color: var(--muted); padding: 30px 10px; font-size: 13.5px; font-weight: 600; }
+
+  /* ---- History ---- */
+  .history-day {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 13px 16px;
+    margin-bottom: 9px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px var(--shadow);
+  }
+  .history-day-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 700; }
+  .history-day-head .mono { font-size: 12.5px; color: var(--accent); font-weight: 700; }
+  .history-words { display: none; margin-top: 11px; }
+  .history-words.open { display: block; }
+
+  footer.foot {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 36px;
+    opacity: 0.8;
+    font-weight: 600;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flashcard-inner { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="title">
+      <span style="font-size:22px">🎓</span>
+      <h1>인윤 영어 단어장</h1>
+    </div>
+    <span class="subtitle mono" id="dbStatus">불러오는 중...</span>
+  </header>
+
+  <div class="stats">
+    <div class="stat" id="statCardTotal"><div class="n mono" id="statTotal">0</div><div class="l">전체 단어</div></div>
+    <div class="stat good" id="statCardMastered"><div class="n mono" id="statMastered">0</div><div class="l">외운 단어</div></div>
+    <div class="stat bad" id="statCardLearning"><div class="n mono" id="statLearning">0</div><div class="l">복습 필요</div></div>
+  </div>
+
+  <nav class="tabs">
+    <button data-view="study" class="active">🗂 학습</button>
+    <button data-view="quiz">❓ 퀴즈</button>
+    <button data-view="history">📅 기록</button>
+    <button data-view="add">➕ 추가</button>
+  </nav>
+
+  <!-- STUDY -->
+  <section id="view-study" class="active">
+    <div class="day-banner" id="dayBanner"></div>
+    <div id="studyBody"></div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="view-quiz">
+    <div class="quiz-mode-toggle" id="quizModeToggle">
+      <button data-mode="choice" class="active">뜻 고르기</button>
+      <button data-mode="spelling">철자 쓰기</button>
+    </div>
+    <div id="quizBody"></div>
+  </section>
+
+  <!-- LIST (opened by tapping a number above, not from the tab bar) -->
+  <section id="view-list">
+    <div class="list-title" id="listTitle"></div>
+    <input class="list-search" id="listSearch" type="text" placeholder="단어나 뜻으로 검색...">
+    <div id="listBody"></div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="view-history">
+    <div id="historyBody"></div>
+  </section>
+
+  <!-- ADD -->
+  <section id="view-add">
+    <div class="add-card">
+      <div class="field">
+        <label for="inWord">단어 (영어)</label>
+        <input id="inWord" type="text" placeholder="예: ambitious" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="inMeaning">뜻 (한글)</label>
+        <input id="inMeaning" type="text" placeholder="예: 야심 있는, 의욕적인" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="inExample">예문 (선택)</label>
+        <textarea id="inExample" rows="2" placeholder="예: She is an ambitious student."></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="submit-btn" id="addBtn">단어장에 추가</button>
+        <button class="submit-btn secondary" id="photoAddBtn">📷 사진으로 추가</button>
+      </div>
+      <input type="file" id="photoAddInput" accept="image/*" multiple hidden>
+      <div class="toast" id="addToast"></div>
+    </div>
+  </section>
+
+  <footer class="foot">✨ 인윤이의 영어 공부를 응원합니다 · 오늘도 화이팅! ✨</footer>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  var words = [];      // full cache from db
+  var dbRef = null;
+  var sampleRef = null;
+  var currentView = "study";
+  var studyQueue = [];
+  var studyIdx = 0;
+  var flipped = false;
+  var quizWord = null;
+  var quizAnswered = false;
+  var quizScore = { correct: 0, total: 0 };
+  var quizResults = []; // { word, meaning, correct, ... } for each answered question, in order
+  var QUIZ_LIMIT = 50;
+  var quizDone = false;
+  var quizQueue = [];
+  var quizIdx = 0;
+  var quizMode = "choice"; // "choice" (뜻 고르기) | "spelling" (철자 쓰기)
+  // Tracks the document-level Enter-key listener used to advance past a
+  // wrong spelling answer's "다음" screen. Must be cleared any time the
+  // question changes for ANY reason (normal advance, restart, mode switch)
+  // or it leaks and fires on a later, unrelated Enter press.
+  var pendingSpellNextHandler = null;
+  function clearPendingSpellNextHandler() {
+    if (pendingSpellNextHandler) {
+      document.removeEventListener("keydown", pendingSpellNextHandler);
+      pendingSpellNextHandler = null;
+    }
+  }
+
+  var DAILY_TARGET = 50;
+
+  // Mastery scoring: 뜻 고르기 퀴즈와 철자 쓰기 퀴즈의 점수를 서로 독립적으로
+  // 채점한다. 각 모드마다 정답 = +1점, 오답 = -1점 (0~3점 범위, 3점을
+  // 넘어서거나 0점 밑으로는 내려가지 않는다). 두 점수의 합이 6점(즉 두 모드
+  // 모두 3점 만점)이 되어야만 "외운 단어"로 등록된다.
+  var MODE_MASTERY_TARGET = 3;
+  var MASTERY_SUM_TARGET = 6;
+  function applyModeMasteryDelta(currentScore, correct) {
+    var score = (currentScore || 0) + (correct ? 1 : -1);
+    if (score > MODE_MASTERY_TARGET) score = MODE_MASTERY_TARGET;
+    if (score < 0) score = 0;
+    return score;
+  }
+  // One-time migration for words saved under the old single-masteryScore
+  // system (0~5점). Existing progress is split in half between the two new
+  // per-mode scores (rounded so 뜻 고르기 gets the extra point on odd totals),
+  // each capped at 3, so the migrated sum is never more than 5 — nobody is
+  // instantly "외운 단어" under the new stricter combined-6점 rule.
+  //
+  // IMPORTANT: this runs on every onSnapshot delivery (see boot()), and
+  // onSnapshot fires again for every write it itself makes. With hundreds
+  // of words needing migration at once, firing one update() per word here
+  // used to re-trigger a fresh snapshot for words whose write hadn't been
+  // acknowledged yet, which re-queued another update for the same word —
+  // a feedback loop that froze the whole page. To avoid that: the local
+  // `words` cache is patched immediately (so the UI is correct right
+  // away), but the actual writes are sent in small throttled batches, and
+  // only one batch run is ever active at a time.
+  var migrationInFlight = false;
+  var MIGRATION_BATCH_SIZE = 20;
+  var MIGRATION_BATCH_DELAY_MS = 300;
+  function computeMigratedPatch(w) {
+    var old = w.masteryScore || 0;
+    var choiceScore = Math.min(MODE_MASTERY_TARGET, Math.ceil(old / 2));
+    var spellingScore = Math.min(MODE_MASTERY_TARGET, Math.floor(old / 2));
+    return {
+      choiceMasteryScore: choiceScore,
+      spellingMasteryScore: spellingScore,
+      mastered: (choiceScore + spellingScore) >= MASTERY_SUM_TARGET
+    };
+  }
+  function runMigrationBatches(ids) {
+    migrationInFlight = true;
+    var idx = 0;
+    function nextBatch() {
+      if (!dbRef || idx >= ids.length) { migrationInFlight = false; return; }
+      var batchIds = ids.slice(idx, idx + MIGRATION_BATCH_SIZE);
+      idx += MIGRATION_BATCH_SIZE;
+      Promise.all(batchIds.map(function (id) {
+        var w = words.filter(function (x) { return x.id === id; })[0];
+        if (!w) return Promise.resolve();
+        return dbRef.collection("words").doc(id).update(computeMigratedPatch(w)).catch(function () {});
+      })).then(function () {
+        setTimeout(nextBatch, MIGRATION_BATCH_DELAY_MS);
+      });
+    }
+    nextBatch();
+  }
+  function migrateMasteryScores() {
+    var pendingIds = [];
+    words.forEach(function (w) {
+      if (w.choiceMasteryScore !== undefined && w.spellingMasteryScore !== undefined) return;
+      Object.assign(w, computeMigratedPatch(w));
+      pendingIds.push(w.id);
+    });
+    if (pendingIds.length === 0 || migrationInFlight) return;
+    runMigrationBatches(pendingIds);
+  }
+  var dailyPlan = null;        // { date: 'YYYY-MM-DD', wordIds: [...] }
+  var dailyLogEntries = {};    // { wordId: {word, meaning, result, at} } for dailyPlan.date
+  var planLoading = false;
+  var reviewMode = false;
+  var savedStudyQueue = null;
+  var savedStudyIdx = 0;
+
+  // ---------- daily study/quiz time tracking ----------
+  // Elapsed time is measured as the gap between "this card/question was
+  // shown" and "the person answered it", not a background ticking clock —
+  // that way nothing keeps running (or gets miscounted) while the tab is
+  // inactive. Each gap is capped so leaving the app open on one card for a
+  // long time doesn't inflate the total. Review sessions and quiz retakes
+  // add MORE time onto the same day's total rather than replacing it.
+  var STUDY_TIME_CAP_MS = 5 * 60 * 1000;
+  var QUIZ_TIME_CAP_MS = 3 * 60 * 1000;
+  var studyCardShownAt = 0;
+  var currentStudyCardId = null;
+  var quizQuestionShownAt = 0;
+  var dayTimeTotals = { date: null, studyMs: 0, quizMs: 0, loaded: false, loading: false };
+
+  function loadDayTimeTotals(date) {
+    if (dayTimeTotals.date === date && (dayTimeTotals.loaded || dayTimeTotals.loading)) return;
+    dayTimeTotals = { date: date, studyMs: 0, quizMs: 0, loaded: false, loading: true };
+    if (!dbRef) { dayTimeTotals.loaded = true; dayTimeTotals.loading = false; return; }
+    dbRef.doc("dailyLogs/" + date).get().then(function (snap) {
+      if (dayTimeTotals.date !== date) return; // date rolled over while this was in flight
+      var d = (snap.exists && snap.data()) || {};
+      dayTimeTotals.studyMs = d.studyMs || 0;
+      dayTimeTotals.quizMs = d.quizMs || 0;
+      dayTimeTotals.loaded = true;
+      dayTimeTotals.loading = false;
+    }).catch(function () {
+      if (dayTimeTotals.date !== date) return;
+      dayTimeTotals.loaded = true;
+      dayTimeTotals.loading = false;
+    });
+  }
+
+  // Adds deltaMs onto today's running total for "studyMs" or "quizMs" and
+  // persists it to dailyLogs/{today}. If today's existing total hasn't
+  // finished loading yet, the delta is skipped rather than risking an
+  // overwrite based on a stale (zero) local total — loadDayTimeTotals is
+  // kicked off proactively at boot so this window is normally very short.
+  function addTimeMs(kind, deltaMs) {
+    if (!deltaMs || deltaMs <= 0) return;
+    var date = todayStr();
+    if (dayTimeTotals.date !== date) { loadDayTimeTotals(date); return; }
+    if (!dayTimeTotals.loaded) return;
+    dayTimeTotals[kind] = (dayTimeTotals[kind] || 0) + deltaMs;
+    if (!dbRef) return;
+    var patch = { date: date };
+    patch[kind] = dayTimeTotals[kind];
+    var ref = dbRef.doc("dailyLogs/" + date);
+    ref.update(patch).catch(function () {
+      try { ref.set(patch).catch(function () {}); } catch (e2) {}
+    });
+  }
+
+  function formatDuration(ms) {
+    var totalSec = Math.max(0, Math.round((ms || 0) / 1000));
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    if (h > 0) return h + "시간 " + m + "분";
+    if (m > 0) return m + "분 " + s + "초";
+    return s + "초";
+  }
+
+  function byId(id) { return document.getElementById(id); }
+
+  // Artifacts run in a sandboxed iframe where window.confirm()/alert() are
+  // silently blocked (they neither show anything nor throw), so a plain
+  // confirm() call just falls through as if the user said no. This is a
+  // custom in-page replacement.
+  function showConfirmModal(message, onYes) {
+    var overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML =
+      '<div class="confirm-box">' +
+        "<p>" + escapeHtml(message) + "</p>" +
+        '<div class="confirm-actions">' +
+          '<button class="cancel" id="confirmCancelBtn">취소</button>' +
+          '<button class="ok" id="confirmOkBtn">삭제</button>' +
+        "</div>" +
+      "</div>";
+    document.body.appendChild(overlay);
+    function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+    overlay.querySelector("#confirmCancelBtn").onclick = close;
+    overlay.querySelector("#confirmOkBtn").onclick = function () { close(); onYes(); };
+  }
+
+  function showInfoModal(message) {
+    var overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML =
+      '<div class="confirm-box">' +
+        "<p>" + escapeHtml(message) + "</p>" +
+        '<div class="confirm-actions">' +
+          '<button class="ok" id="infoOkBtn" style="flex:none;padding:11px 26px;margin:0 auto;">확인</button>' +
+        "</div>" +
+      "</div>";
+    document.body.appendChild(overlay);
+    function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+    overlay.querySelector("#infoOkBtn").onclick = close;
+  }
+
+  function fmtTime() { return Date.now(); }
+
+  function todayStr() {
+    try {
+      return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    } catch (e) {
+      var d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+  }
+
+  function prettyDate(dateStr) {
+    var p = dateStr.split("-");
+    return parseInt(p[0], 10) + "년 " + parseInt(p[1], 10) + "월 " + parseInt(p[2], 10) + "일";
+  }
+
+  // ---------- rendering: shared ----------
+  function render() {
+    renderStats();
+    if (currentView === "study") {
+      if (!dailyPlan || dailyPlan.date !== todayStr()) ensureDailyPlan();
+      else renderStudy();
+    }
+    if (currentView === "quiz") renderQuizIfNeeded();
+    if (currentView === "list") renderList();
+  }
+
+  function renderStats() {
+    var total = words.length;
+    var mastered = words.filter(function (w) { return w.mastered; }).length;
+    byId("statTotal").textContent = total;
+    byId("statMastered").textContent = mastered;
+    byId("statLearning").textContent = total - mastered;
+  }
+
+  // ---------- STUDY (daily plan) ----------
+  function pickDailyWords() {
+    var pool = words.slice();
+    // least-recently-reviewed first (never-reviewed words sort first), random tie-break
+    pool.sort(function (a, b) {
+      var ar = a.lastReviewed || 0, br = b.lastReviewed || 0;
+      if (ar !== br) return ar - br;
+      return Math.random() - 0.5;
+    });
+    return pool.slice(0, Math.min(DAILY_TARGET, pool.length));
+  }
+
+  function hydrateStudyFromPlan() {
+    if (!dailyPlan) return;
+    var map = {};
+    words.forEach(function (w) { map[w.id] = w; });
+    var remainingIds = dailyPlan.wordIds.filter(function (id) { return !dailyLogEntries[id]; });
+    var list = remainingIds.map(function (id) { return map[id]; }).filter(Boolean);
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = list[i]; list[i] = list[j]; list[j] = t;
+    }
+    studyQueue = list;
+    studyIdx = 0;
+    flipped = false;
+    currentStudyCardId = null;
+  }
+
+  function ensureDailyPlan() {
+    if (!dbRef || words.length === 0 || planLoading) return;
+    var date = todayStr();
+    planLoading = true;
+    var planRef = dbRef.doc("dailyPlans/" + date);
+    var logRef = dbRef.doc("dailyLogs/" + date);
+    Promise.all([planRef.get(), logRef.get()]).then(function (res) {
+      var planSnap = res[0], logSnap = res[1];
+      var wordIds;
+      if (planSnap.exists && planSnap.data() && Array.isArray(planSnap.data().wordIds) && planSnap.data().wordIds.length) {
+        wordIds = planSnap.data().wordIds;
+      } else {
+        wordIds = pickDailyWords().map(function (w) { return w.id; });
+        planRef.set({ wordIds: wordIds, createdAt: fmtTime() }).catch(function () {});
+      }
+      dailyPlan = { date: date, wordIds: wordIds };
+      dailyLogEntries = (logSnap.exists && logSnap.data() && logSnap.data().entries) || {};
+      planLoading = false;
+      hydrateStudyFromPlan();
+      renderStudy();
+    }).catch(function () {
+      var wordIds = pickDailyWords().map(function (w) { return w.id; });
+      dailyPlan = { date: date, wordIds: wordIds };
+      dailyLogEntries = {};
+      planLoading = false;
+      hydrateStudyFromPlan();
+      renderStudy();
+    });
+  }
+
+  function logStudy(date, wordId, entry) {
+    if (!dbRef) return;
+    try {
+      var ref = dbRef.doc("dailyLogs/" + date);
+      var patch = { date: date, entries: {} };
+      patch.entries[wordId] = entry;
+      ref.update(patch).catch(function () {
+        try { ref.set(patch).catch(function () {}); } catch (e2) {}
+      });
+    } catch (e) {
+      // never let a DB hiccup block study progress
+    }
+  }
+
+  function renderDayBanner() {
+    var el = byId("dayBanner");
+    if (!el) return;
+    if (!dailyPlan) { el.innerHTML = ""; return; }
+    var done = Object.keys(dailyLogEntries).length;
+    var total = dailyPlan.wordIds.length;
+    var reviewBtnHtml = (done > 0) ? '<button class="mini-btn" id="reviewToggleBtn">' + (reviewMode ? "↩ 돌아가기" : "🔁 오늘 단어 복습") + '</button>' : '';
+    el.innerHTML = "<span>" + prettyDate(dailyPlan.date) + " 오늘의 학습</span>" +
+      '<span style="display:flex;align-items:center;gap:8px">' +
+        "<span class=\"mono\">" + done + " / " + total + "</span>" + reviewBtnHtml +
+      '</span>';
+    var toggleBtn = byId("reviewToggleBtn");
+    if (toggleBtn) {
+      toggleBtn.onclick = function () {
+        if (reviewMode) exitReview(); else startReview();
+      };
+    }
+  }
+
+  function startReview() {
+    if (!dailyPlan) return;
+    var ids = Object.keys(dailyLogEntries);
+    if (ids.length === 0) return;
+    if (!reviewMode) {
+      savedStudyQueue = studyQueue;
+      savedStudyIdx = studyIdx;
+    }
+    var map = {};
+    words.forEach(function (w) { map[w.id] = w; });
+    var list = ids.map(function (id) { return map[id]; }).filter(Boolean);
+    for (var i = list.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = list[i]; list[i] = list[j]; list[j] = t;
+    }
+    reviewMode = true;
+    studyQueue = list;
+    studyIdx = 0;
+    flipped = false;
+    currentStudyCardId = null;
+    renderStudy();
+  }
+
+  function exitReview() {
+    reviewMode = false;
+    studyQueue = savedStudyQueue || [];
+    studyIdx = savedStudyIdx || 0;
+    flipped = false;
+    currentStudyCardId = null;
+    renderStudy();
+  }
+
+  function renderStudy() {
+    renderDayBanner();
+    var body = byId("studyBody");
+    if (words.length === 0) {
+      body.innerHTML = '<div class="deck-empty">아직 등록된 단어가 없어요.<br>“단어 추가” 탭에서 첫 단어를 넣어보세요.</div>';
+      return;
+    }
+    if (!dailyPlan) {
+      body.innerHTML = '<div class="deck-empty">오늘의 단어를 준비하고 있어요...</div>';
+      return;
+    }
+    if (studyIdx >= studyQueue.length) {
+      if (reviewMode) {
+        body.innerHTML = '<div class="deck-empty">🔁 오늘 단어 복습을 모두 마쳤어요!<br>' +
+          '<button class="submit-btn" id="reviewAgainBtn" style="margin-top:14px">다시 복습하기</button> ' +
+          '<button class="submit-btn" id="reviewExitBtn" style="margin-top:14px;background:var(--surface);color:var(--ink);border:1px solid var(--border)">학습으로 돌아가기</button></div>';
+        byId("reviewAgainBtn").onclick = startReview;
+        byId("reviewExitBtn").onclick = exitReview;
+        return;
+      }
+      var doneCount = Object.keys(dailyLogEntries).length;
+      var reviewBtn = doneCount > 0 ? '<button class="submit-btn" id="startReviewBtn" style="margin-top:14px">🔁 오늘 배운 단어 다시 보기</button>' : '';
+      body.innerHTML = '<div class="deck-empty">🎉 오늘 목표 단어(' + dailyPlan.wordIds.length + '개)를 모두 학습했어요!<br>내일 새로운 50개가 준비돼요. “기록” 탭에서 오늘 배운 단어를 확인해보세요.<br>' + reviewBtn + '</div>';
+      if (doneCount > 0) byId("startReviewBtn").onclick = startReview;
+      return;
+    }
+    var totalTarget = dailyPlan.wordIds.length;
+    var answeredCount = dailyPlan.wordIds.filter(function (id) { return !!dailyLogEntries[id]; }).length;
+    var w = studyQueue[studyIdx];
+    if (currentStudyCardId !== w.id) {
+      currentStudyCardId = w.id;
+      studyCardShownAt = Date.now();
+    }
+    var progressText = reviewMode
+      ? ("복습 " + (studyIdx + 1) + " / " + studyQueue.length)
+      : ((answeredCount + 1) + " / " + totalTarget);
+    body.innerHTML =
+      '<div class="card-stage">' +
+        '<div class="progress-line">' + progressText + '</div>' +
+        '<div class="flashcard' + (flipped ? ' flipped' : '') + '" id="flashcard">' +
+          '<div class="flashcard-inner">' +
+            '<div class="face front">' +
+              '<button class="speak-btn" id="speakBtn" title="발음 듣기">🔊</button>' +
+              '<div class="word">' + escapeHtml(w.word) + '</div>' +
+              '<div class="hint">탭해서 뜻 보기</div>' +
+            '</div>' +
+            '<div class="face back">' +
+              '<div class="meaning">' + escapeHtml(w.meaning) + '</div>' +
+              (w.example ? '<div class="example">' + escapeHtml(w.example) + '</div>' : '') +
+              '<div class="hint">탭해서 단어 보기</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="judge-row">' +
+          '<button class="dont" id="judgeDont">😵 아직 몰라요</button>' +
+          '<button class="know" id="judgeKnow">✅ 알아요</button>' +
+        '</div>' +
+      '</div>';
+
+    byId("flashcard").onclick = function () { flipped = !flipped; renderStudy(); };
+    byId("speakBtn").onclick = function (e) { e.stopPropagation(); speak(w.word); };
+    byId("judgeKnow").onclick = function () { try { judge(w, true); } catch (e) { safeAdvanceStudy(); } };
+    byId("judgeDont").onclick = function () { try { judge(w, false); } catch (e) { safeAdvanceStudy(); } };
+  }
+
+  // Moves to the next card and repaints, no matter what. This is called
+  // FIRST inside judge() — before anything that could possibly throw — and
+  // again as a last-resort fallback if judge() itself errors out, so a tap
+  // on 알아요/아직 몰라요 can never look like it "did nothing".
+  function safeAdvanceStudy() {
+    studyIdx++;
+    flipped = false;
+    try {
+      renderStudy();
+    } catch (e) {
+      try {
+        byId("studyBody").innerHTML =
+          '<div class="deck-empty">화면을 그리다가 문제가 생겼어요.<br>' +
+          '<button class="submit-btn" id="studyReloadBtn" style="margin-top:14px">새로고침</button></div>';
+        byId("studyReloadBtn").onclick = function () { location.reload(); };
+      } catch (e2) {}
+    }
+    try { renderStats(); } catch (e) {}
+  }
+
+  function judge(w, knew) {
+    // Capture how long this card was on screen BEFORE advancing — advancing
+    // repaints the study view, which resets studyCardShownAt for the next card.
+    try {
+      var elapsed = studyCardShownAt ? (Date.now() - studyCardShownAt) : 0;
+      if (elapsed > 0) addTimeMs("studyMs", Math.min(elapsed, STUDY_TIME_CAP_MS));
+    } catch (e) {}
+
+    // Advance the UI first, no matter what — a DB hiccup (or any other bug
+    // below) should never stop the study session from moving to the next
+    // word. Everything past this line is best-effort bookkeeping only.
+    safeAdvanceStudy();
+
+    try {
+      // knowCount/dontKnowCount and the mastery score are counted from quiz
+      // answers only (see recordQuizAnswer below) — 알아요/아직 몰라요 taps
+      // here don't affect them.
+      var patch = {
+        correctCount: (w.correctCount || 0) + (knew ? 1 : 0),
+        wrongCount: (w.wrongCount || 0) + (knew ? 0 : 1),
+        lastReviewed: fmtTime()
+      };
+      // optimistic local update so stats reflect the answer immediately
+      w.correctCount = patch.correctCount;
+      w.wrongCount = patch.wrongCount;
+
+      var entry = null;
+      if (dailyPlan) {
+        entry = { word: w.word, meaning: w.meaning, result: knew ? "know" : "dont", at: fmtTime() };
+        dailyLogEntries[w.id] = entry;
+      }
+
+      if (dbRef) dbRef.collection("words").doc(w.id).update(patch).catch(function () {});
+      if (entry) logStudy(dailyPlan.date, w.id, entry);
+    } catch (e) {}
+  }
+
+  // ---------- QUIZ ----------
+  function eligibleForQuiz() { return words.length >= 4; }
+
+  function shuffleArr(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // Build this quiz session's word list: studied words first (falls back to
+  // the whole deck if nothing has been studied yet), weighted toward the
+  // ones not yet mastered ("모르는 단어"). If fewer than 40 unmastered words
+  // exist, everything studied is included with no ratio applied; otherwise
+  // the session is capped at 50 questions split 4:1 unknown:known. No word
+  // repeats within a session.
+  function buildQuizQueue() {
+    var studied = words.filter(function (w) { return !!w.lastReviewed; });
+    var pool = studied.length > 0 ? studied : words.slice();
+    var unknown = shuffleArr(pool.filter(function (w) { return !w.mastered; }));
+    var known = shuffleArr(pool.filter(function (w) { return w.mastered; }));
+
+    var selected;
+    if (unknown.length < 40) {
+      selected = unknown.concat(known);
+    } else {
+      var unknownCount = Math.min(unknown.length, Math.round(QUIZ_LIMIT * 0.8));
+      var knownCount = Math.min(known.length, QUIZ_LIMIT - unknownCount);
+      selected = unknown.slice(0, unknownCount).concat(known.slice(0, knownCount));
+      var deficit = QUIZ_LIMIT - selected.length;
+      if (deficit > 0) {
+        var extra = unknown.slice(unknownCount).concat(known.slice(knownCount));
+        selected = selected.concat(extra.slice(0, deficit));
+      }
+    }
+    var target = Math.min(QUIZ_LIMIT, pool.length);
+    return shuffleArr(selected).slice(0, target);
+  }
+
+  // Rough verb detector: this word list writes verb meanings in dictionary
+  // (predicate) form ending in "다" (e.g. "받아들이다"), while adjectives/
+  // nouns/adverbs use attributive or bare-noun endings ("행복한", "사과").
+  // Only the first clause is checked so meanings like "놓다; 붙이다" still count.
+  function isVerbMeaning(meaning) {
+    if (!meaning) return false;
+    var first = String(meaning).split(/[;,]/)[0];
+    first = first.replace(/\s*\([^)]*\)\s*$/, "").trim();
+    return /다$/.test(first);
+  }
+
+  function prepareChoices(word) {
+    var candidates = words.filter(function (w) { return w.id !== word.id; });
+    var pool = candidates;
+    if (isVerbMeaning(word.meaning)) {
+      // Verb question: keep the wrong choices verbs too, so the answer
+      // can't be spotted just by picking out the only verb-shaped meaning.
+      var verbCandidates = candidates.filter(function (w) { return isVerbMeaning(w.meaning); });
+      if (verbCandidates.length >= 3) pool = verbCandidates;
+    }
+    var distractors = shuffleArr(pool).slice(0, 3);
+    return shuffleArr([word].concat(distractors));
+  }
+
+  function startNewQuizSession() {
+    quizDone = false;
+    quizScore = { correct: 0, total: 0 };
+    quizResults = [];
+    quizQueue = buildQuizQueue();
+    quizIdx = 0;
+    showQuizQuestion();
+  }
+
+  function showQuizQuestion() {
+    quizAnswered = false;
+    quizWord = quizQueue[quizIdx];
+    quizQuestionShownAt = Date.now();
+    renderQuiz(prepareChoices(quizWord));
+  }
+
+  function advanceQuiz() {
+    quizIdx++;
+    if (quizIdx >= quizQueue.length) {
+      quizDone = true;
+      renderQuizDone();
+    } else {
+      showQuizQuestion();
+    }
+  }
+
+  function renderQuizIfNeeded() {
+    if (!eligibleForQuiz()) {
+      clearPendingSpellNextHandler();
+      byId("quizBody").innerHTML = '<div class="quiz-empty">퀴즈를 풀려면 단어가 최소 4개 필요해요.<br>지금 ' + words.length + '개 있어요 — 조금만 더 추가해볼까요?</div>';
+      return;
+    }
+    if (quizDone) { renderQuizDone(); return; }
+    if (!quizQueue.length || quizIdx >= quizQueue.length) {
+      startNewQuizSession();
+      return;
+    }
+    if (!quizWord || !words.some(function (w) { return w.id === quizWord.id; })) {
+      advanceQuiz();
+    }
+  }
+
+  function renderQuizDone() {
+    clearPendingSpellNextHandler();
+    var body = byId("quizBody");
+    var wrongList = quizResults.filter(function (r) { return !r.correct; });
+    var correctList = quizResults.filter(function (r) { return r.correct; });
+
+    function itemHtml(r) {
+      return '<div class="qr-item ' + (r.correct ? "ok" : "bad") + '">' +
+        '<span class="qr-w">' + escapeHtml(r.word) + '</span>' +
+        '<span class="qr-m">' + escapeHtml(r.meaning) +
+          (!r.correct && r.typed ? ' <span class="qr-chosen">(내가 쓴 답: ' + escapeHtml(r.typed) + ')</span>' : '') +
+        '</span>' +
+      '</div>';
+    }
+
+    var percent = quizScore.total > 0 ? Math.round((quizScore.correct / quizScore.total) * 100) : 0;
+    var html = '<div class="quiz-card">' +
+      '<div class="quiz-prompt">퀴즈 완료! 🎉</div>' +
+      '<div class="quiz-word" style="font-size:24px">맞은 개수 ' + quizScore.correct + '개 · 틀린 개수 ' + (quizScore.total - quizScore.correct) + '개 (정답률 ' + percent + '%)</div>' +
+      '<button class="quiz-next" id="quizRestart" style="margin-top:16px">다시 풀기 →</button>' +
+      '</div>';
+
+    html += '<div class="qr-wrap">';
+    html += '<div class="qr-cols">';
+    html += '<div class="qr-col">' +
+      '<div class="qr-section-title ok">✅ 맞은 단어 (' + correctList.length + ')</div>' +
+      '<div class="qr-list">' + (correctList.length ? correctList.map(itemHtml).join("") : '<div class="qr-empty">맞은 단어가 없어요.</div>') + '</div>' +
+    '</div>';
+    html += '<div class="qr-col">' +
+      '<div class="qr-section-title bad">❌ 틀린 단어 (' + wrongList.length + ')</div>' +
+      '<div class="qr-list">' + (wrongList.length ? wrongList.map(itemHtml).join("") : '<div class="qr-empty">틀린 단어가 없어요!</div>') + '</div>' +
+    '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    body.innerHTML = html;
+    byId("quizRestart").onclick = startNewQuizSession;
+  }
+
+  function renderQuiz(choices) {
+    clearPendingSpellNextHandler();
+    var body = byId("quizBody");
+    var questionNum = quizIdx + 1;
+    var scoreLine = '문제 ' + questionNum + ' / ' + quizQueue.length + ' · 맞음 ' + quizScore.correct + '개 · 틀림 ' + (quizScore.total - quizScore.correct) + '개';
+    var html = '<div class="quiz-score mono">' + scoreLine + '</div>';
+    html += '<div class="quiz-card">';
+
+    if (quizMode === "spelling") {
+      var letterCount = String(quizWord.word || "").trim().length;
+      html += '<div class="quiz-prompt">이 뜻에 해당하는 영어 단어는?</div>';
+      html += '<div class="quiz-word" style="font-size:24px">' + escapeHtml(quizWord.meaning) +
+        ' <button class="speak-btn" style="position:static;display:inline-flex;color:var(--muted);border-color:var(--border);background:transparent" id="quizSpeak">🔊</button>' +
+        ' <span class="spell-hint mono">총 ' + letterCount + '글자</span></div>';
+      html += '<div class="spell-input-row">' +
+        '<input type="text" class="spell-input" id="spellInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어 철자를 입력하세요">' +
+        '<button class="spell-submit" id="spellSubmit">확인</button>' +
+      '</div>';
+      html += '<div class="spell-feedback" id="spellFeedback"></div>';
+      html += '</div>';
+      body.innerHTML = html;
+
+      byId("quizSpeak").onclick = function () { speak(quizWord.word); };
+      var input = byId("spellInput");
+      input.focus();
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); submitSpelling(); }
+      });
+      byId("spellSubmit").onclick = submitSpelling;
+    } else {
+      html += '<div class="quiz-prompt">이 단어의 뜻은?</div>';
+      html += '<div class="quiz-word">' + escapeHtml(quizWord.word) + ' <button class="speak-btn" style="position:static;display:inline-flex;color:var(--muted);border-color:var(--border);background:transparent" id="quizSpeak">🔊</button></div>';
+      html += '<div class="choices">';
+      choices.forEach(function (c, idx) {
+        html += '<button class="choice-btn" data-id="' + c.id + '" data-idx="' + idx + '">' + escapeHtml(c.meaning) + '</button>';
+      });
+      html += '</div></div>';
+      body.innerHTML = html;
+
+      byId("quizSpeak").onclick = function () { speak(quizWord.word); };
+      var btns = body.querySelectorAll(".choice-btn");
+      btns.forEach(function (b) {
+        b.onclick = function () { answerQuiz(b, choices); };
+      });
+    }
+  }
+
+  // Shared scoring for both quiz modes: updates score/results, the word's
+  // mastery point, know/don't-know counts, and persists to db. Returns
+  // nothing — callers handle their own UI feedback before advancing.
+  function recordQuizAnswer(correct, resultExtra) {
+    try {
+      var quizElapsed = quizQuestionShownAt ? (Date.now() - quizQuestionShownAt) : 0;
+      if (quizElapsed > 0) addTimeMs("quizMs", Math.min(quizElapsed, QUIZ_TIME_CAP_MS));
+    } catch (e) {}
+
+    quizScore.total++;
+    if (correct) quizScore.correct++;
+    quizResults.push(Object.assign({
+      word: quizWord.word,
+      meaning: quizWord.meaning,
+      correct: correct
+    }, resultExtra || {}));
+
+    // knowCount/dontKnowCount are counted from quiz answers (correct = 알아요,
+    // wrong = 아직 몰라요) — not from the study screen's judge() taps.
+    // 뜻 고르기(choice)와 철자 쓰기(spelling)는 서로 독립적으로 채점되며,
+    // 두 점수의 합이 6점(각 3점 만점)이 되어야 "외운 단어"로 등록된다.
+    var patch = correct
+      ? { correctCount: (quizWord.correctCount || 0) + 1, knowCount: (quizWord.knowCount || 0) + 1 }
+      : { wrongCount: (quizWord.wrongCount || 0) + 1, dontKnowCount: (quizWord.dontKnowCount || 0) + 1 };
+    if (quizMode === "spelling") {
+      patch.spellingMasteryScore = applyModeMasteryDelta(quizWord.spellingMasteryScore, correct);
+    } else {
+      patch.choiceMasteryScore = applyModeMasteryDelta(quizWord.choiceMasteryScore, correct);
+    }
+    var nextChoice = quizMode === "spelling" ? (quizWord.choiceMasteryScore || 0) : patch.choiceMasteryScore;
+    var nextSpelling = quizMode === "spelling" ? patch.spellingMasteryScore : (quizWord.spellingMasteryScore || 0);
+    patch.mastered = (nextChoice + nextSpelling) >= MASTERY_SUM_TARGET;
+    patch.lastReviewed = fmtTime();
+    Object.assign(quizWord, patch);
+
+    renderStats();
+    try {
+      if (dbRef) dbRef.collection("words").doc(quizWord.id).update(patch).catch(function () {});
+    } catch (e) {}
+  }
+
+  function answerQuiz(btn, choices) {
+    if (quizAnswered) return;
+    quizAnswered = true;
+    var chosenId = btn.getAttribute("data-id");
+    var correct = chosenId === quizWord.id;
+    var chosenChoice = choices.filter(function (c) { return c.id === chosenId; })[0];
+    recordQuizAnswer(correct, { chosenMeaning: correct ? null : (chosenChoice ? chosenChoice.meaning : "") });
+
+    var allBtns = document.querySelectorAll(".choice-btn");
+    allBtns.forEach(function (b) {
+      b.disabled = true;
+      if (b.getAttribute("data-id") === quizWord.id) b.classList.add("correct");
+      else if (b === btn) b.classList.add("wrong");
+    });
+
+    setTimeout(function () { advanceQuiz(); }, 650);
+  }
+
+  function normalizeSpelling(s) {
+    return String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function submitSpelling() {
+    if (quizAnswered) return;
+    var input = byId("spellInput");
+    var typed = input.value;
+    if (!normalizeSpelling(typed)) { input.focus(); return; }
+    quizAnswered = true;
+
+    var correct = normalizeSpelling(typed) === normalizeSpelling(quizWord.word);
+    recordQuizAnswer(correct, { typed: correct ? null : typed.trim() });
+
+    input.disabled = true;
+    byId("spellSubmit").disabled = true;
+    input.classList.add(correct ? "ok" : "bad");
+    var feedback = byId("spellFeedback");
+    speak(quizWord.word);
+
+    if (correct) {
+      feedback.className = "spell-feedback ok";
+      feedback.textContent = "정답이에요! 🎉";
+      setTimeout(function () { advanceQuiz(); }, 1500);
+    } else {
+      // Wrong answers don't auto-advance — 인윤이가 정답을 충분히 볼 수 있도록
+      // 직접 "다음 →"을 눌러야 (또는 컴퓨터에서는 Enter 키로도) 다음 문제로 넘어간다.
+      feedback.innerHTML = '정답: ' + escapeHtml(quizWord.word) +
+        '<button class="quiz-next" id="spellNextBtn" style="display:block;margin-top:12px">다음 →</button>';
+      feedback.className = "spell-feedback bad";
+
+      var goNext = function () {
+        clearPendingSpellNextHandler();
+        advanceQuiz();
+      };
+      pendingSpellNextHandler = function (e) {
+        if (e.key === "Enter") goNext();
+      };
+      // Attach on the next tick — if attached synchronously, the very same
+      // Enter keydown that just triggered submitSpelling() (still bubbling
+      // up from #spellInput to document) would immediately re-trigger this
+      // listener too, skipping the "다음" screen entirely.
+      setTimeout(function () {
+        // Only attach if this is still the pending handler — a fast advance
+        // in the meantime (e.g. clicking 다음 already, or a new question)
+        // may have replaced/cleared it already.
+        if (pendingSpellNextHandler) document.addEventListener("keydown", pendingSpellNextHandler);
+      }, 0);
+      byId("spellNextBtn").onclick = goNext;
+      // Deliberately NOT calling .focus() on this button: moving keyboard
+      // focus onto it during the SAME Enter keydown that just submitted the
+      // answer means the browser's matching keyup (of that very keypress)
+      // lands on the now-focused button, and browsers fire a click from a
+      // button's Enter/Space keyup — instantly "pressing" 다음 before the
+      // person ever sees the 정답 screen. Leaving focus alone avoids that;
+      // Enter still advances via the listener above once they press it again.
+    }
+  }
+
+  // ---------- LIST ----------
+  // Opened by tapping one of the three numbers in the header (no separate
+  // tab for it anymore, to avoid showing the same word list two ways).
+  var listFilterMode = "all"; // "all" | "mastered" | "learning"
+  var LIST_TITLES = { all: "전체 단어", mastered: "외운 단어", learning: "복습 필요" };
+
+  function openListView(mode) {
+    listFilterMode = mode;
+    currentView = "list";
+    document.querySelectorAll("nav.tabs button").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelectorAll("section").forEach(function (s) { s.classList.remove("active"); });
+    byId("view-list").classList.add("active");
+    renderList();
+  }
+
+  function renderList() {
+    var q = (byId("listSearch").value || "").trim().toLowerCase();
+    var body = byId("listBody");
+    var byMode = words.filter(function (w) {
+      if (listFilterMode === "mastered") return !!w.mastered;
+      if (listFilterMode === "learning") return !w.mastered;
+      return true;
+    });
+    var titleEl = byId("listTitle");
+    if (titleEl) {
+      titleEl.innerHTML = "<span>" + (LIST_TITLES[listFilterMode] || "전체 단어") + "</span>" +
+        '<span class="count">' + byMode.length + "개</span>";
+    }
+    var list = byMode.filter(function (w) {
+      if (!q) return true;
+      return (w.word || "").toLowerCase().indexOf(q) !== -1 || (w.meaning || "").toLowerCase().indexOf(q) !== -1;
+    }).slice().sort(function (a, b) { return (b.addedAt || 0) - (a.addedAt || 0); });
+
+    if (list.length === 0) {
+      body.innerHTML = '<div class="empty-state">' + (byMode.length === 0 ? "해당하는 단어가 없어요." : "검색 결과가 없어요.") + '</div>';
+      return;
+    }
+    var rows = list.map(function (w) {
+      var know = w.knowCount || 0;
+      var dont = w.dontKnowCount || 0;
+      return '<tr>' +
+        '<td class="w">' + escapeHtml(w.word) + '</td>' +
+        '<td class="m">' + escapeHtml(w.meaning) + (w.example ? '<span class="ex">' + escapeHtml(w.example) + '</span>' : '') + '</td>' +
+        '<td class="cnt ok">' + know + '</td>' +
+        '<td class="cnt bad">' + dont + '</td>' +
+        '<td><span class="badge ' + (w.mastered ? "mastered" : "learning") + '">' + (w.mastered ? "외움" : "학습중") + '</span></td>' +
+        '<td>' +
+          '<div class="row-actions">' +
+            '<button class="icon-btn" data-speak="' + w.id + '" title="발음">🔊</button>' +
+            '<button class="icon-btn" data-del="' + w.id + '" title="삭제">🗑️</button>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }).join("");
+
+    body.innerHTML =
+      '<div class="word-table-wrap"><table class="word-table">' +
+        '<thead><tr>' +
+          '<th>단어</th><th>뜻</th><th>✅</th><th>❌</th><th>상태</th><th></th>' +
+        '</tr></thead>' +
+        '<tbody>' + rows + '</tbody>' +
+      '</table></div>';
+
+    body.querySelectorAll("[data-speak]").forEach(function (b) {
+      b.onclick = function () {
+        var w = words.find(function (x) { return x.id === b.getAttribute("data-speak"); });
+        if (w) speak(w.word);
+      };
+    });
+    body.querySelectorAll("[data-del]").forEach(function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute("data-del");
+        showConfirmModal("이 단어를 삭제할까요?", function () {
+          if (dbRef) dbRef.collection("words").doc(id).delete().catch(function () {});
+        });
+      };
+    });
+  }
+
+  // ---------- HISTORY ----------
+  var historyLoaded = false;
+  function renderHistory() {
+    var body = byId("historyBody");
+    if (!dbRef) {
+      body.innerHTML = '<div class="empty-state">저장소를 사용할 수 없어요.</div>';
+      return;
+    }
+    if (!historyLoaded) {
+      body.innerHTML = '<div class="empty-state">기록을 불러오는 중...</div>';
+    }
+    dbRef.collection("dailyLogs").get().then(function (snap) {
+      historyLoaded = true;
+      var days = snap.docs.map(function (d) {
+        var data = d.data() || {};
+        return { date: d.id, entries: data.entries || {}, studyMs: data.studyMs || 0, quizMs: data.quizMs || 0 };
+      }).filter(function (d) { return Object.keys(d.entries).length > 0 || d.studyMs > 0 || d.quizMs > 0; });
+
+      days.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+
+      if (days.length === 0) {
+        body.innerHTML = '<div class="empty-state">아직 학습 기록이 없어요.<br>“학습” 탭에서 오늘의 단어를 공부해보세요.</div>';
+        return;
+      }
+
+      body.innerHTML = days.map(function (d, idx) {
+        var entries = Object.keys(d.entries).map(function (k) { return Object.assign({ id: k }, d.entries[k]); });
+        var knowCount = entries.filter(function (e) { return e.result === "know"; }).length;
+        var rows = entries.map(function (e) {
+          var w = words.filter(function (x) { return x.id === e.id; })[0];
+          var totalKnow = w ? (w.knowCount || 0) : 0;
+          var totalDont = w ? (w.dontKnowCount || 0) : 0;
+          return '<tr>' +
+            '<td class="w">' + escapeHtml(e.word) + '</td>' +
+            '<td class="m">' + escapeHtml(e.meaning) + '</td>' +
+            '<td>' + (e.result === "know" ? "✅ 알아요" : "😵 몰라요") + '</td>' +
+            '<td class="cnt ok">' + totalKnow + '</td>' +
+            '<td class="cnt bad">' + totalDont + '</td>' +
+          '</tr>';
+        }).join("");
+        var table = '<div class="word-table-wrap"><table class="word-table">' +
+          '<thead><tr><th>단어</th><th>뜻</th><th>이날 결과</th><th>누적 ✅</th><th>누적 ❌</th></tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table></div>';
+        var totalMs = d.studyMs + d.quizMs;
+        var timeHtml = '<span class="mono" style="font-size:14px;color:var(--accent)">' +
+            '⏱ 학습 ' + formatDuration(d.studyMs) + ' · 퀴즈 ' + formatDuration(d.quizMs) + ' · 총 ' + formatDuration(totalMs) +
+          '</span>';
+        return '<div class="history-day" data-idx="' + idx + '">' +
+          '<div class="history-day-head" style="flex-wrap:wrap;row-gap:4px">' +
+            '<span>' + prettyDate(d.date) + '</span>' +
+            timeHtml +
+            '<span class="mono">' + knowCount + ' / ' + entries.length + '</span>' +
+          '</div>' +
+          '<div class="history-words" id="historyWords' + idx + '">' + table + '</div>' +
+        '</div>';
+      }).join("");
+
+      body.querySelectorAll(".history-day").forEach(function (el) {
+        el.onclick = function () {
+          var idx = el.getAttribute("data-idx");
+          byId("historyWords" + idx).classList.toggle("open");
+        };
+      });
+    }).catch(function () {
+      body.innerHTML = '<div class="empty-state">기록을 불러오지 못했어요.</div>';
+    });
+  }
+
+  // ---------- ADD ----------
+  function submitWord() {
+    var word = byId("inWord").value.trim();
+    var meaning = byId("inMeaning").value.trim();
+    var example = byId("inExample").value.trim();
+    var toast = byId("addToast");
+    if (!word || !meaning) {
+      toast.style.color = "var(--bad)";
+      toast.textContent = "단어와 뜻을 모두 입력해주세요.";
+      return;
+    }
+    if (!dbRef) { toast.textContent = "저장소를 사용할 수 없어요."; return; }
+    dbRef.collection("words").add({
+      word: word,
+      meaning: meaning,
+      example: example,
+      addedAt: fmtTime(),
+      source: "typed",
+      knowCount: 0,
+      dontKnowCount: 0,
+      correctCount: 0,
+      wrongCount: 0,
+      choiceMasteryScore: 0,
+      spellingMasteryScore: 0,
+      mastered: false
+    }).then(function () {
+      toast.style.color = "var(--good)";
+      toast.textContent = '"' + word + '" 단어장에 추가했어요!';
+      byId("inWord").value = "";
+      byId("inMeaning").value = "";
+      byId("inExample").value = "";
+      byId("inWord").focus();
+    }).catch(function () {
+      toast.style.color = "var(--bad)";
+      toast.textContent = "저장에 실패했어요. 다시 시도해주세요.";
+    });
+  }
+
+  // ---------- PHOTO ADD ----------
+  var photoAddBusy = false;
+
+  function buildPhotoPrompt() {
+    var existing = words.map(function (w) { return w.word; }).join(", ");
+    return (
+      "너는 중학교 1학년 학생의 영어 단어장 앱을 돕는 도우미야. " +
+      "첨부된 사진은 손으로 쓰거나 인쇄된 영어 단어 목록(단어장)이야. " +
+      "사진 속에서 읽을 수 있는 영어 단어와 그 한글 뜻을 최대한 정확히 추출해줘.\n\n" +
+      "규칙:\n" +
+      "1. 글씨가 흐릿하거나 확신이 없는 단어는 건너뛰어(포함하지 마).\n" +
+      "2. 각 단어에 대해 중학교 1학년 수준의 쉬운 영어 예문을 새로 만들어줘(사진에 예문이 있으면 참고해도 되지만 없어도 꼭 만들어줘).\n" +
+      "3. 이미 단어장에 있는 단어는 참고용으로 알려줄게 (중복이어도 그냥 포함해도 돼, 앱에서 중복 처리할 거야): " + (existing || "(없음)") + "\n" +
+      "4. 결과는 오직 JSON 배열로만 응답해. 다른 설명 텍스트는 절대 넣지 마.\n" +
+      '5. 형식: [{"word":"apple","meaning":"사과","example":"I eat an apple every morning."}, ...]\n' +
+      "6. 사진에서 단어를 하나도 읽지 못했다면 빈 배열 []을 반환해."
+    );
+  }
+
+  function setPhotoAddBusy(busy, label) {
+    photoAddBusy = busy;
+    var btn = byId("photoAddBtn");
+    btn.disabled = busy;
+    btn.textContent = busy ? (label || "읽는 중...") : "📷 사진으로 추가";
+  }
+
+  function sampleErrorMessage(err) {
+    var code = err && err.code;
+    switch (code) {
+      case "cancelled":
+        return null; // silent
+      case "not_granted":
+      case "sampling_disabled":
+      case "not_declared":
+      case "capability_disabled":
+      case "capability_removed":
+        return "이 기능을 사용할 수 없어요. (Claude 사용 권한이 꺼져 있어요)";
+      case "images_unavailable":
+        return "이 화면에서는 사진을 분석할 수 없어요.";
+      case "rate_limited":
+        return "잠시 요청이 많아요. 조금 이따가 다시 시도해주세요.";
+      case "session_expired":
+        return "세션이 만료됐어요. 새로고침 후 다시 시도해주세요.";
+      case "image_rejected":
+        return "사진을 인식할 수 없어요. 다른 사진으로 시도해주세요.";
+      case "empty_completion":
+      case "invalid_json":
+        return "사진에서 단어를 읽어오지 못했어요. 더 선명한 사진으로 시도해주세요.";
+      case "refused":
+        return "요청을 처리할 수 없었어요.";
+      default:
+        return "사진을 읽어오는 중 문제가 생겼어요. 다시 시도해주세요.";
+    }
+  }
+
+  function handlePhotoFiles(files) {
+    if (!files || files.length === 0) return;
+    if (!sampleRef) {
+      showInfoModal("이 기기/화면에서는 사진으로 단어 읽기 기능을 사용할 수 없어요.");
+      return;
+    }
+    if (photoAddBusy) return;
+    setPhotoAddBusy(true);
+    sampleRef.limits().then(function (limits) {
+      if (!limits || !limits.images) {
+        setPhotoAddBusy(false);
+        showInfoModal("이 화면에서는 사진 분석 기능을 사용할 수 없어요.");
+        return;
+      }
+      var maxCount = limits.images.maxCount || 1;
+      var picked = Array.prototype.slice.call(files, 0, maxCount);
+      return sampleRef.json(buildPhotoPrompt(), { images: picked, modelTier: "default", cache: false })
+        .then(function (data) {
+          setPhotoAddBusy(false);
+          var items = Array.isArray(data) ? data : (data && Array.isArray(data.items) ? data.items : null);
+          if (!items) {
+            showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 선명한 사진으로 시도해주세요.");
+            return;
+          }
+          openPhotoReviewModal(items);
+        })
+        .catch(function (err) {
+          setPhotoAddBusy(false);
+          var msg = sampleErrorMessage(err);
+          if (msg) showInfoModal(msg);
+        });
+    }).catch(function () {
+      setPhotoAddBusy(false);
+      showInfoModal("사진 분석 기능을 준비하지 못했어요. 다시 시도해주세요.");
+    });
+  }
+
+  function openPhotoReviewModal(items) {
+    var cleaned = items
+      .map(function (it) {
+        return {
+          word: String((it && it.word) || "").trim(),
+          meaning: String((it && it.meaning) || "").trim(),
+          example: String((it && it.example) || "").trim()
+        };
+      })
+      .filter(function (it) { return it.word && it.meaning; });
+
+    if (cleaned.length === 0) {
+      showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 선명한 사진으로 시도해주세요.");
+      return;
+    }
+
+    var existingWords = {};
+    words.forEach(function (w) { existingWords[(w.word || "").toLowerCase()] = true; });
+
+    var overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    var rowsHtml = cleaned.map(function (it, i) {
+      var isDup = !!existingWords[it.word.toLowerCase()];
+      return (
+        '<label class="review-item' + (isDup ? " dup" : "") + '">' +
+          '<input type="checkbox" data-idx="' + i + '"' + (isDup ? "" : " checked") + '>' +
+          "<span>" +
+            '<div class="rw">' + escapeHtml(it.word) + "</div>" +
+            '<div class="rm">' + escapeHtml(it.meaning) + "</div>" +
+            (it.example ? '<div class="rex">' + escapeHtml(it.example) + "</div>" : "") +
+            (isDup ? '<div class="dup-tag">이미 단어장에 있어요</div>' : "") +
+          "</span>" +
+        "</label>"
+      );
+    }).join("");
+
+    overlay.innerHTML =
+      '<div class="review-box">' +
+        "<h3>사진에서 " + cleaned.length + "개의 단어를 찾았어요</h3>" +
+        '<div class="review-sub">추가할 단어를 확인하고 체크해주세요. (이미 있는 단어는 기본적으로 체크 해제되어 있어요)</div>' +
+        '<div class="review-list">' + rowsHtml + "</div>" +
+        '<div class="confirm-actions">' +
+          '<button class="cancel" id="reviewCancelBtn">취소</button>' +
+          '<button class="ok" id="reviewOkBtn">선택한 단어 추가</button>' +
+        "</div>" +
+      "</div>";
+    document.body.appendChild(overlay);
+
+    function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
+    overlay.querySelector("#reviewCancelBtn").onclick = close;
+    overlay.querySelector("#reviewOkBtn").onclick = function () {
+      var checked = Array.prototype.filter.call(
+        overlay.querySelectorAll('input[type="checkbox"]'),
+        function (cb) { return cb.checked; }
+      );
+      if (checked.length === 0) { close(); return; }
+      if (!dbRef) { close(); showInfoModal("저장소를 사용할 수 없어요."); return; }
+      var toAdd = checked.map(function (cb) { return cleaned[parseInt(cb.getAttribute("data-idx"), 10)]; });
+      var pending = toAdd.length;
+      close();
+      toAdd.forEach(function (it) {
+        dbRef.collection("words").add({
+          word: it.word,
+          meaning: it.meaning,
+          example: it.example,
+          addedAt: fmtTime(),
+          source: "photo",
+          correctCount: 0,
+          wrongCount: 0,
+          choiceMasteryScore: 0,
+          spellingMasteryScore: 0,
+          mastered: false
+        }).catch(function () {});
+      });
+      var toast = byId("addToast");
+      toast.style.color = "var(--good)";
+      toast.textContent = toAdd.length + "개의 단어를 사진에서 추가했어요!";
+    };
+  }
+
+  byId("photoAddBtn").onclick = function () {
+    if (!sampleRef) {
+      showInfoModal("이 기기/화면에서는 사진으로 단어 읽기 기능을 사용할 수 없어요.");
+      return;
+    }
+    byId("photoAddInput").click();
+  };
+  byId("photoAddInput").addEventListener("change", function (e) {
+    var files = e.target.files;
+    handlePhotoFiles(files);
+    e.target.value = "";
+  });
+
+  // ---------- helpers ----------
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // Pronunciation voice: fixed to "Evan" (installed on 인윤이's Mac).
+  // Falls back to any English voice if Evan isn't available on whatever
+  // device happens to open this page.
+  var PREFERRED_VOICE_NAME = "Evan";
+  var cachedVoice = null;
+  var voicesReady = false;
+
+  function pickVoice() {
+    if (!("speechSynthesis" in window)) return null;
+    var voices = window.speechSynthesis.getVoices() || [];
+    if (voices.length === 0) return null;
+    var exact = voices.find(function (v) { return v.name === PREFERRED_VOICE_NAME; });
+    if (exact) return exact;
+    var partial = voices.find(function (v) { return v.name.toLowerCase().indexOf(PREFERRED_VOICE_NAME.toLowerCase()) !== -1; });
+    if (partial) return partial;
+    var enVoice = voices.find(function (v) { return /^en/i.test(v.lang); });
+    return enVoice || voices[0] || null;
+  }
+
+  function ensureVoice() {
+    if (!("speechSynthesis" in window)) return;
+    cachedVoice = pickVoice();
+    if (cachedVoice) voicesReady = true;
+  }
+  ensureVoice();
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.onvoiceschanged = ensureVoice;
+  }
+
+  function speak(text) {
+    try {
+      if (!("speechSynthesis" in window)) return;
+      if (!voicesReady) ensureVoice();
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.rate = 0.8;
+      u.pitch = 0.92;
+      if (cachedVoice) {
+        u.voice = cachedVoice;
+        u.lang = cachedVoice.lang || "en-US";
+      }
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  // ---------- tabs ----------
+  document.querySelectorAll("nav.tabs button").forEach(function (btn) {
+    btn.onclick = function () {
+      currentView = btn.getAttribute("data-view");
+      document.querySelectorAll("nav.tabs button").forEach(function (b) { b.classList.toggle("active", b === btn); });
+      document.querySelectorAll("section").forEach(function (s) { s.classList.remove("active"); });
+      byId("view-" + currentView).classList.add("active");
+      if (currentView === "history") renderHistory();
+      render();
+    };
+  });
+
+  document.querySelectorAll("#quizModeToggle button").forEach(function (btn) {
+    btn.onclick = function () {
+      var mode = btn.getAttribute("data-mode");
+      if (mode === quizMode) return;
+      quizMode = mode;
+      document.querySelectorAll("#quizModeToggle button").forEach(function (b) { b.classList.toggle("active", b === btn); });
+      if (eligibleForQuiz()) startNewQuizSession();
+      else renderQuizIfNeeded();
+    };
+  });
+
+  byId("statCardTotal").onclick = function () { openListView("all"); };
+  byId("statCardMastered").onclick = function () { openListView("mastered"); };
+  byId("statCardLearning").onclick = function () { openListView("learning"); };
+
+  byId("addBtn").onclick = submitWord;
+  byId("inExample").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitWord();
+  });
+  ["inWord", "inMeaning"].forEach(function (id) {
+    byId(id).addEventListener("keydown", function (e) { if (e.key === "Enter") submitWord(); });
+  });
+  byId("listSearch").addEventListener("input", renderList);
+
+  // ---------- boot (Firebase) ----------
+  // 사진으로 단어 추가 기능(Claude AI 활용)은 Claude 안에서만 동작해서
+  // 외부 호스팅 버전에서는 sampleRef가 항상 null로 남고, 기존 코드가
+  // 이를 감지해서 안내 메시지를 보여주며 자연스럽게 비활성화돼요.
+  var firebaseConfig = {
+    apiKey: "AIzaSyC_vILEd6JvK4a3uAf6UnSsLKt8623q9bQ",
+    authDomain: "inyun-vocab.firebaseapp.com",
+    projectId: "inyun-vocab",
+    storageBucket: "inyun-vocab.firebasestorage.app",
+    messagingSenderId: "80382714903",
+    appId: "1:80382714903:web:268e02d711662010a46852"
+  };
+
+  function boot() {
+    try {
+      firebase.initializeApp(firebaseConfig);
+      dbRef = firebase.firestore();
+    } catch (e) {
+      byId("dbStatus").textContent = "저장소 사용 불가";
+      render();
+      return;
+    }
+    byId("dbStatus").textContent = "";
+    loadDayTimeTotals(todayStr());
+    dbRef.collection("words").onSnapshot(function (snap) {
+      words = snap.docs.map(function (d) {
+        return Object.assign({ id: d.id }, d.data());
+      });
+      migrateMasteryScores();
+      render();
+    }, function () {
+      byId("dbStatus").textContent = "동기화 오류";
+    });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
