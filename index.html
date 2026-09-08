@@ -783,6 +783,41 @@
   var quizQueue = [];
   var quizIdx = 0;
   var quizMode = "choice"; // "choice" (뜻 고르기) | "spelling" (철자 쓰기)
+
+  // Today's completed-quiz record per mode, kept in Firestore so it survives
+  // page reloads / tab switches / different devices — not just this page
+  // session. undefined-vs-loaded is tracked with quizTodayLoaded; the value
+  // itself is null when today has no completed session yet for that mode.
+  var quizTodayLoaded = { choice: false, spelling: false };
+  var quizTodayFetching = { choice: false, spelling: false };
+  var quizTodayResult = { choice: null, spelling: null };
+  var quizLoadedDate = null; // resets the three maps above when the date rolls over
+
+  function quizLogDocId(mode, date) { return (date || todayStr()) + "_" + mode; }
+
+  function fetchQuizTodayResult(mode) {
+    if (quizTodayFetching[mode]) return;
+    quizTodayFetching[mode] = true;
+    if (!dbRef) {
+      quizTodayFetching[mode] = false;
+      quizTodayLoaded[mode] = true;
+      quizTodayResult[mode] = null;
+      renderQuizIfNeeded();
+      return;
+    }
+    dbRef.doc("quizLogs/" + quizLogDocId(mode)).get().then(function (snap) {
+      quizTodayFetching[mode] = false;
+      quizTodayLoaded[mode] = true;
+      quizTodayResult[mode] = snap.exists ? snap.data() : null;
+      if (currentView === "quiz" && quizMode === mode) renderQuizIfNeeded();
+    }).catch(function () {
+      quizTodayFetching[mode] = false;
+      quizTodayLoaded[mode] = true;
+      quizTodayResult[mode] = null;
+      if (currentView === "quiz" && quizMode === mode) renderQuizIfNeeded();
+    });
+  }
+
   // Tracks the document-level Enter-key listener used to advance past a
   // wrong spelling answer's "다음" screen. Must be cleared any time the
   // question changes for ANY reason (normal advance, restart, mode switch)
@@ -992,6 +1027,12 @@
   // ---------- rendering: shared ----------
   function render() {
     renderStats();
+    if (quizLoadedDate !== todayStr()) {
+      quizLoadedDate = todayStr();
+      quizTodayLoaded = { choice: false, spelling: false };
+      quizTodayFetching = { choice: false, spelling: false };
+      quizTodayResult = { choice: null, spelling: null };
+    }
     if (currentView === "study") {
       if (!dailyPlan || dailyPlan.date !== todayStr()) ensureDailyPlan();
       else renderStudy();
@@ -1072,9 +1113,13 @@
       var ref = dbRef.doc("dailyLogs/" + date);
       var patch = { date: date, entries: {} };
       patch.entries[wordId] = entry;
-      ref.update(patch).catch(function () {
-        try { ref.set(patch).catch(function () {}); } catch (e2) {}
-      });
+      // Firestore's plain update({entries: {...}}) REPLACES the whole
+      // "entries" map (unlike Claude's old db capability, which merged
+      // nested objects automatically) — that was silently wiping out every
+      // previously-logged word each time a new one was saved. mergeFields
+      // with a dot path targets just this one entry (and creates the
+      // document if it doesn't exist yet), leaving the rest of the map intact.
+      ref.set(patch, { mergeFields: ["date", "entries." + wordId] }).catch(function () {});
     } catch (e) {
       // never let a DB hiccup block study progress
     }
@@ -1350,6 +1395,13 @@
       byId("quizBody").innerHTML = '<div class="quiz-empty">퀴즈를 풀려면 단어가 최소 4개 필요해요.<br>지금 ' + words.length + '개 있어요 — 조금만 더 추가해볼까요?</div>';
       return;
     }
+    if (!quizTodayLoaded[quizMode]) {
+      clearPendingSpellNextHandler();
+      byId("quizBody").innerHTML = '<div class="quiz-empty">오늘 퀴즈 기록을 불러오는 중...</div>';
+      fetchQuizTodayResult(quizMode);
+      return;
+    }
+    if (quizTodayResult[quizMode]) { renderQuizDone(quizTodayResult[quizMode]); return; }
     if (quizDone) { renderQuizDone(); return; }
     if (!quizQueue.length || quizIdx >= quizQueue.length) {
       startNewQuizSession();
@@ -1360,11 +1412,38 @@
     }
   }
 
-  function renderQuizDone() {
+  // Renders the "quiz session finished" screen. Called two ways:
+  //  - renderQuizDone() with no argument, right after finishing a live
+  //    session — saves that session as today's completed record for this
+  //    mode so it's still shown after a tab switch / reload / other device.
+  //  - renderQuizDone(savedRecord) when returning to an already-completed
+  //    day (loaded from Firestore) — just displays it, no re-save.
+  // Either way a "다시 풀기 (복습)" button lets 인윤이 voluntarily retake it;
+  // finishing that retake overwrites today's saved record with the new one.
+  function renderQuizDone(savedRecord) {
     clearPendingSpellNextHandler();
     var body = byId("quizBody");
-    var wrongList = quizResults.filter(function (r) { return !r.correct; });
-    var correctList = quizResults.filter(function (r) { return r.correct; });
+    var record = savedRecord || {
+      mode: quizMode,
+      date: todayStr(),
+      correct: quizScore.correct,
+      total: quizScore.total,
+      results: quizResults,
+      completedAt: fmtTime()
+    };
+
+    if (!savedRecord) {
+      quizDone = true;
+      quizTodayLoaded[quizMode] = true;
+      quizTodayResult[quizMode] = record;
+      if (dbRef) {
+        dbRef.doc("quizLogs/" + quizLogDocId(quizMode)).set(record).catch(function () {});
+      }
+    }
+
+    var results = record.results || [];
+    var wrongList = results.filter(function (r) { return !r.correct; });
+    var correctList = results.filter(function (r) { return r.correct; });
 
     function itemHtml(r) {
       return '<div class="qr-item ' + (r.correct ? "ok" : "bad") + '">' +
@@ -1375,11 +1454,12 @@
       '</div>';
     }
 
-    var percent = quizScore.total > 0 ? Math.round((quizScore.correct / quizScore.total) * 100) : 0;
+    var percent = record.total > 0 ? Math.round((record.correct / record.total) * 100) : 0;
+    var titleLine = savedRecord ? "오늘 이 모드 퀴즈를 완료했어요 ✅" : "퀴즈 완료! 🎉";
     var html = '<div class="quiz-card">' +
-      '<div class="quiz-prompt">퀴즈 완료! 🎉</div>' +
-      '<div class="quiz-word" style="font-size:24px">맞은 개수 ' + quizScore.correct + '개 · 틀린 개수 ' + (quizScore.total - quizScore.correct) + '개 (정답률 ' + percent + '%)</div>' +
-      '<button class="quiz-next" id="quizRestart" style="margin-top:16px">다시 풀기 →</button>' +
+      '<div class="quiz-prompt">' + titleLine + '</div>' +
+      '<div class="quiz-word" style="font-size:24px">맞은 개수 ' + record.correct + '개 · 틀린 개수 ' + (record.total - record.correct) + '개 (정답률 ' + percent + '%)</div>' +
+      '<button class="quiz-next" id="quizRestart" style="margin-top:16px">다시 풀기 (복습) →</button>' +
       '</div>';
 
     html += '<div class="qr-wrap">';
@@ -2006,9 +2086,11 @@
       var mode = btn.getAttribute("data-mode");
       if (mode === quizMode) return;
       quizMode = mode;
+      quizDone = false;
+      quizQueue = [];
+      quizIdx = 0;
       document.querySelectorAll("#quizModeToggle button").forEach(function (b) { b.classList.toggle("active", b === btn); });
-      if (eligibleForQuiz()) startNewQuizSession();
-      else renderQuizIfNeeded();
+      renderQuizIfNeeded();
     };
   });
 
