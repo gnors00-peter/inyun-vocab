@@ -1725,6 +1725,8 @@
 
   // ---------- HISTORY ----------
   var historyLoaded = false;
+  var QUIZ_MODE_LABEL = { choice: "뜻 고르기", spelling: "철자 쓰기" };
+
   function renderHistory() {
     var body = byId("historyBody");
     if (!dbRef) {
@@ -1734,18 +1736,49 @@
     if (!historyLoaded) {
       body.innerHTML = '<div class="empty-state">기록을 불러오는 중...</div>';
     }
-    dbRef.collection("dailyLogs").get().then(function (snap) {
+    Promise.all([
+      dbRef.collection("dailyLogs").get(),
+      dbRef.collection("quizLogs").get()
+    ]).then(function (results) {
       historyLoaded = true;
-      var days = snap.docs.map(function (d) {
+      var logsSnap = results[0], quizSnap = results[1];
+
+      var byDate = {};
+      function ensureDay(date) {
+        if (!byDate[date]) byDate[date] = { date: date, entries: {}, studyMs: 0, quizMs: 0, quiz: {} };
+        return byDate[date];
+      }
+
+      logsSnap.docs.forEach(function (d) {
         var data = d.data() || {};
-        return { date: d.id, entries: data.entries || {}, studyMs: data.studyMs || 0, quizMs: data.quizMs || 0 };
-      }).filter(function (d) { return Object.keys(d.entries).length > 0 || d.studyMs > 0 || d.quizMs > 0; });
+        var day = ensureDay(d.id);
+        day.entries = data.entries || {};
+        day.studyMs = data.studyMs || 0;
+        day.quizMs = data.quizMs || 0;
+      });
+
+      quizSnap.docs.forEach(function (d) {
+        var data = d.data() || {};
+        if (!data.date || !data.mode) return;
+        ensureDay(data.date).quiz[data.mode] = data;
+      });
+
+      var days = Object.keys(byDate).map(function (k) { return byDate[k]; }).filter(function (d) {
+        return Object.keys(d.entries).length > 0 || d.studyMs > 0 || d.quizMs > 0 || d.quiz.choice || d.quiz.spelling;
+      });
 
       days.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
 
       if (days.length === 0) {
         body.innerHTML = '<div class="empty-state">아직 학습 기록이 없어요.<br>“학습” 탭에서 오늘의 단어를 공부해보세요.</div>';
         return;
+      }
+
+      function quizResultCell(r) {
+        if (r.correct) return "✅ 정답";
+        var detail = r.typed ? (" (내가 쓴 답: " + escapeHtml(r.typed) + ")")
+          : (r.chosenMeaning ? (" (선택: " + escapeHtml(r.chosenMeaning) + ")") : "");
+        return "❌ 오답" + detail;
       }
 
       body.innerHTML = days.map(function (d, idx) {
@@ -1763,10 +1796,44 @@
             '<td class="cnt bad">' + totalDont + '</td>' +
           '</tr>';
         }).join("");
-        var table = '<div class="word-table-wrap"><table class="word-table">' +
-          '<thead><tr><th>단어</th><th>뜻</th><th>이날 결과</th><th>누적 ✅</th><th>누적 ❌</th></tr></thead>' +
-          '<tbody>' + rows + '</tbody>' +
-        '</table></div>';
+        // Each sub-section (study / choice-quiz / spelling-quiz) collapses on
+        // its own, closed by default — a day with a full 50-word study list
+        // plus two quiz runs was turning into one huge page-length table.
+        function subToggle(toggleId, summaryHtml) {
+          return '<div class="history-subhead mono" data-toggle="' + toggleId + '" ' +
+            'style="cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);margin-top:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;justify-content:space-between;align-items:center">' +
+            '<span>' + summaryHtml + '</span><span class="chev">▸</span>' +
+          '</div>';
+        }
+
+        var studyToggleId = "historySub" + idx + "_study";
+        var table = entries.length ? (
+          subToggle(studyToggleId, "📚 학습 결과 (" + knowCount + " / " + entries.length + ")") +
+          '<div class="history-words" id="' + studyToggleId + '"><div class="word-table-wrap"><table class="word-table">' +
+            '<thead><tr><th>단어</th><th>뜻</th><th>이날 결과</th><th>누적 ✅</th><th>누적 ❌</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table></div></div>'
+        ) : '';
+
+        var quizHtml = ["choice", "spelling"].map(function (mode) {
+          var rec = d.quiz[mode];
+          if (!rec) return "";
+          var pct = rec.total > 0 ? Math.round((rec.correct / rec.total) * 100) : 0;
+          var qRows = (rec.results || []).map(function (r) {
+            return '<tr>' +
+              '<td class="w">' + escapeHtml(r.word) + '</td>' +
+              '<td class="m">' + escapeHtml(r.meaning) + '</td>' +
+              '<td>' + quizResultCell(r) + '</td>' +
+            '</tr>';
+          }).join("");
+          var quizToggleId = "historySub" + idx + "_quiz_" + mode;
+          return subToggle(quizToggleId, "📝 퀴즈 (" + QUIZ_MODE_LABEL[mode] + ") — " + rec.correct + " / " + rec.total + " (" + pct + "%)") +
+            '<div class="history-words" id="' + quizToggleId + '"><div class="word-table-wrap"><table class="word-table">' +
+              '<thead><tr><th>단어</th><th>뜻</th><th>결과</th></tr></thead>' +
+              '<tbody>' + qRows + '</tbody>' +
+            '</table></div></div>';
+        }).join("");
+
         var totalMs = d.studyMs + d.quizMs;
         var timeHtml = '<span class="mono" style="font-size:14px;color:var(--accent)">' +
             '⏱ 학습 ' + formatDuration(d.studyMs) + ' · 퀴즈 ' + formatDuration(d.quizMs) + ' · 총 ' + formatDuration(totalMs) +
@@ -1777,7 +1844,7 @@
             timeHtml +
             '<span class="mono">' + knowCount + ' / ' + entries.length + '</span>' +
           '</div>' +
-          '<div class="history-words" id="historyWords' + idx + '">' + table + '</div>' +
+          '<div class="history-words" id="historyWords' + idx + '">' + table + quizHtml + '</div>' +
         '</div>';
       }).join("");
 
@@ -1785,6 +1852,17 @@
         el.onclick = function () {
           var idx = el.getAttribute("data-idx");
           byId("historyWords" + idx).classList.toggle("open");
+        };
+      });
+      body.querySelectorAll("[data-toggle]").forEach(function (el) {
+        el.onclick = function (e) {
+          e.stopPropagation(); // don't also collapse the parent day accordion
+          var id = el.getAttribute("data-toggle");
+          var target = byId(id);
+          if (!target) return;
+          var nowOpen = target.classList.toggle("open");
+          var chev = el.querySelector(".chev");
+          if (chev) chev.textContent = nowOpen ? "▾" : "▸";
         };
       });
     }).catch(function () {
