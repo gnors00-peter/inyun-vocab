@@ -782,7 +782,25 @@
   var quizDone = false;
   var quizQueue = [];
   var quizIdx = 0;
+  // Spelling mode has two phases. Phase "first" walks quizQueue in order
+  // exactly like choice mode — each word graded once via recordQuizAnswer,
+  // and that first-pass score is what gets saved to quizLogs (same as
+  // before). Any word missed in that pass goes into spellingRetry. Once
+  // the first pass ends, if spellingRetry isn't empty, phase flips to
+  // "retry": those missed words are asked again, in order, wrong answers
+  // sent to the back of the line, until the queue is empty — but none of
+  // that re-practice is graded (no recordQuizAnswer call), so the saved
+  // record still reflects only the original first-pass performance.
+  var spellingRetry = [];
+  var spellingPhase = "first"; // "first" | "retry"
+  var spellingTotal = 0; // fixed word count, for progress display
   var quizMode = "choice"; // "choice" (뜻 고르기) | "spelling" (철자 쓰기)
+  // True for the whole duration of a voluntary "다시 풀기 (복습)" retake.
+  // A practice round never touches word-level stats (correctCount /
+  // wrongCount / masteryScore / mastered), quiz-exposure tracking, or
+  // today's saved quizLogs record — the very first graded round of the day
+  // stays the permanent record no matter how many times it's replayed.
+  var quizPracticeMode = false;
 
   // Today's completed-quiz record per mode, kept in Firestore so it survives
   // page reloads / tab switches / different devices — not just this page
@@ -1032,6 +1050,7 @@
       quizTodayLoaded = { choice: false, spelling: false };
       quizTodayFetching = { choice: false, spelling: false };
       quizTodayResult = { choice: null, spelling: null };
+      quizPracticeMode = false;
     }
     if (currentView === "study") {
       if (!dailyPlan || dailyPlan.date !== todayStr()) ensureDailyPlan();
@@ -1316,11 +1335,40 @@
   // exist, everything studied is included with no ratio applied; otherwise
   // the session is capped at 50 questions split 4:1 unknown:known. No word
   // repeats within a session.
+  // Orders words by how little they've been asked in past graded quiz
+  // rounds — never-asked words (quizAskCount 0) first, then least-recently
+  // asked — so buildQuizQueue() below fills each day's round with the most
+  // under-exposed words instead of picking uniformly at random (which let
+  // some words like a well-known "restroom" keep coming up by luck while
+  // others never got picked at all). A small random jitter breaks ties
+  // between words with equal exposure so it doesn't feel robotic.
+  // quizAskCount is a new field — for a word that predates it, fall back to
+  // (correctCount + wrongCount), which was already being incremented on
+  // every graded quiz answer, so past exposure isn't treated as a blank
+  // slate the first time this runs.
+  function exposureCount(w) {
+    if (w.quizAskCount != null) return w.quizAskCount;
+    return (w.correctCount || 0) + (w.wrongCount || 0);
+  }
+
+  function sortByExposure(arr) {
+    return arr
+      .map(function (w) { return { w: w, jitter: Math.random() }; })
+      .sort(function (a, b) {
+        var ac = exposureCount(a.w), bc = exposureCount(b.w);
+        if (ac !== bc) return ac - bc;
+        var al = a.w.lastQuizAt || 0, bl = b.w.lastQuizAt || 0;
+        if (al !== bl) return al - bl;
+        return a.jitter - b.jitter;
+      })
+      .map(function (x) { return x.w; });
+  }
+
   function buildQuizQueue() {
     var studied = words.filter(function (w) { return !!w.lastReviewed; });
     var pool = studied.length > 0 ? studied : words.slice();
-    var unknown = shuffleArr(pool.filter(function (w) { return !w.mastered; }));
-    var known = shuffleArr(pool.filter(function (w) { return w.mastered; }));
+    var unknown = sortByExposure(pool.filter(function (w) { return !w.mastered; }));
+    var known = sortByExposure(pool.filter(function (w) { return w.mastered; }));
 
     var selected;
     if (unknown.length < 40) {
@@ -1363,18 +1411,40 @@
     return shuffleArr([word].concat(distractors));
   }
 
+  // Resolves today's saved word-id order back to live word objects (in that
+  // same order), dropping any that were deleted from the deck since.
+  function wordsByIds(ids) {
+    return ids.map(function (id) {
+      return words.filter(function (w) { return w.id === id; })[0];
+    }).filter(Boolean);
+  }
+
   function startNewQuizSession() {
     quizDone = false;
     quizScore = { correct: 0, total: 0 };
     quizResults = [];
-    quizQueue = buildQuizQueue();
+    // A practice retake ("다시 풀기") replays the exact same words as
+    // today's graded round — that's the point of a retake — instead of a
+    // fresh selection, which is what buildQuizQueue() would otherwise hand
+    // back (especially now that it prioritizes under-exposed words, so a
+    // fresh pick after already grading 50 words would mostly differ).
+    var todaysWordIds = quizTodayResult[quizMode] && Array.isArray(quizTodayResult[quizMode].wordIds)
+      ? quizTodayResult[quizMode].wordIds
+      : null;
+    var replay = (quizPracticeMode && todaysWordIds) ? wordsByIds(todaysWordIds) : null;
+    quizQueue = (replay && replay.length) ? replay : buildQuizQueue();
     quizIdx = 0;
+    spellingRetry = [];
+    spellingPhase = "first";
+    spellingTotal = quizQueue.length;
     showQuizQuestion();
   }
 
   function showQuizQuestion() {
     quizAnswered = false;
-    quizWord = quizQueue[quizIdx];
+    quizWord = (quizMode === "spelling" && spellingPhase === "retry")
+      ? spellingRetry[0]
+      : quizQueue[quizIdx];
     quizQuestionShownAt = Date.now();
     renderQuiz(prepareChoices(quizWord));
   }
@@ -1382,6 +1452,49 @@
   function advanceQuiz() {
     quizIdx++;
     if (quizIdx >= quizQueue.length) {
+      quizDone = true;
+      renderQuizDone();
+    } else {
+      showQuizQuestion();
+    }
+  }
+
+  // First-pass step for spelling mode: advances quizIdx like choice mode
+  // (skippedWasWrong / skippedWord let the mid-round "word got deleted"
+  // path in renderQuizIfNeeded skip a question without grading it wrong).
+  // When the first pass ends, the round is graded & saved right here — a
+  // perfect pass finishes immediately; any misses flip into the retry
+  // phase instead of ending the round.
+  function finishFirstPassStep(wasWrong, skippedWord) {
+    if (wasWrong && skippedWord) spellingRetry.push(skippedWord);
+    quizIdx++;
+    if (quizIdx < quizQueue.length) {
+      showQuizQuestion();
+      return;
+    }
+    if (spellingRetry.length === 0) {
+      quizDone = true;
+      renderQuizDone();
+    } else {
+      spellingPhase = "retry";
+      showQuizQuestion();
+    }
+  }
+
+  // Spelling-mode advance. First pass: grade via finishFirstPassStep (which
+  // also handles the first→retry phase switch). Retry phase: not graded —
+  // a correct answer retires the word for good, a wrong one sends it to
+  // the back of spellingRetry for another try, and the round only ends
+  // (for real) once that queue empties, i.e. every missed word has been
+  // spelled correctly at least once since.
+  function advanceSpelling(wasCorrect) {
+    if (spellingPhase === "first") {
+      finishFirstPassStep(!wasCorrect, quizWord);
+      return;
+    }
+    var justAsked = spellingRetry.shift();
+    if (!wasCorrect && justAsked) spellingRetry.push(justAsked);
+    if (spellingRetry.length === 0) {
       quizDone = true;
       renderQuizDone();
     } else {
@@ -1401,9 +1514,37 @@
       fetchQuizTodayResult(quizMode);
       return;
     }
-    if (quizTodayResult[quizMode]) { renderQuizDone(quizTodayResult[quizMode]); return; }
+    // A completed-today record only short-circuits to the "done" screen
+    // outside of a practice retake — quizPracticeMode is true for the whole
+    // duration of a "다시 풀기" round precisely so it can run (and finish)
+    // without ever touching or being blocked by that saved record.
+    if (quizTodayResult[quizMode] && !quizPracticeMode) { renderQuizDone(quizTodayResult[quizMode]); return; }
     if (quizDone) { renderQuizDone(); return; }
+    if (quizMode === "spelling") {
+      if (spellingPhase === "retry") {
+        if (!spellingRetry.length) { quizDone = true; renderQuizDone(); return; }
+        if (!quizWord || !words.some(function (w) { return w.id === quizWord.id; })) {
+          // The word being shown got deleted from the deck mid-round — drop it
+          // from the retry queue (not a "wrong" answer) and move on.
+          spellingRetry.shift();
+          if (!spellingRetry.length) { quizDone = true; renderQuizDone(); return; }
+          showQuizQuestion();
+        }
+        return;
+      }
+      if (!quizQueue.length || quizIdx >= quizQueue.length) {
+        quizPracticeMode = false;
+        startNewQuizSession();
+        return;
+      }
+      if (!quizWord || !words.some(function (w) { return w.id === quizWord.id; })) {
+        // Deleted mid-round — skip without grading it wrong.
+        finishFirstPassStep(false, null);
+      }
+      return;
+    }
     if (!quizQueue.length || quizIdx >= quizQueue.length) {
+      quizPracticeMode = false;
       startNewQuizSession();
       return;
     }
@@ -1418,8 +1559,9 @@
   //    mode so it's still shown after a tab switch / reload / other device.
   //  - renderQuizDone(savedRecord) when returning to an already-completed
   //    day (loaded from Firestore) — just displays it, no re-save.
-  // Either way a "다시 풀기 (복습)" button lets 인윤이 voluntarily retake it;
-  // finishing that retake overwrites today's saved record with the new one.
+  // Either way a "다시 풀기 (복습)" button lets 인윤이 voluntarily retake it —
+  // that retake runs in quizPracticeMode, so finishing it does NOT touch
+  // today's saved record; the first graded round of the day stays final.
   function renderQuizDone(savedRecord) {
     clearPendingSpellNextHandler();
     var body = byId("quizBody");
@@ -1429,15 +1571,21 @@
       correct: quizScore.correct,
       total: quizScore.total,
       results: quizResults,
+      wordsCount: (quizMode === "spelling" ? spellingTotal : quizQueue.length),
+      // Saved so a later "다시 풀기" replays this exact same word set
+      // instead of a fresh (possibly different) selection.
+      wordIds: quizQueue.map(function (w) { return w.id; }),
       completedAt: fmtTime()
     };
 
     if (!savedRecord) {
       quizDone = true;
-      quizTodayLoaded[quizMode] = true;
-      quizTodayResult[quizMode] = record;
-      if (dbRef) {
-        dbRef.doc("quizLogs/" + quizLogDocId(quizMode)).set(record).catch(function () {});
+      if (!quizPracticeMode) {
+        quizTodayLoaded[quizMode] = true;
+        quizTodayResult[quizMode] = record;
+        if (dbRef) {
+          dbRef.doc("quizLogs/" + quizLogDocId(quizMode)).set(record).catch(function () {});
+        }
       }
     }
 
@@ -1455,35 +1603,57 @@
     }
 
     var percent = record.total > 0 ? Math.round((record.correct / record.total) * 100) : 0;
-    var titleLine = savedRecord ? "오늘 이 모드 퀴즈를 완료했어요 ✅" : "퀴즈 완료! 🎉";
+    var titleLine = savedRecord
+      ? "오늘 이 모드 퀴즈를 완료했어요 ✅"
+      : (quizPracticeMode ? "복습 완료! 🎉 (오늘 기록에는 반영되지 않아요)" : "퀴즈 완료! 🎉");
+    // The saved record is always graded from the first attempt at each word
+    // (spelling mode's retry-until-correct practice happens after this and
+    // is never re-graded), so correct/total here means unique words either
+    // way — the same summary line works for both modes now.
+    var summaryLine = '맞은 개수 ' + record.correct + '개 · 틀린 개수 ' + (record.total - record.correct) + '개 (정답률 ' + percent + '%)';
+    // Spelling mode keeps drilling a missed word until it's spelled right,
+    // so if there were any first-try misses, call out that they all got
+    // conquered by the end of the round (the score above still shows the
+    // original first-try result, unaffected by that practice).
+    if (record.mode === "spelling" && record.total - record.correct > 0) {
+      summaryLine += '<br><span style="font-size:15px;color:var(--muted)">틀렸던 단어도 반복 연습으로 모두 정복했어요! 🎉</span>';
+    }
     var html = '<div class="quiz-card">' +
       '<div class="quiz-prompt">' + titleLine + '</div>' +
-      '<div class="quiz-word" style="font-size:24px">맞은 개수 ' + record.correct + '개 · 틀린 개수 ' + (record.total - record.correct) + '개 (정답률 ' + percent + '%)</div>' +
+      '<div class="quiz-word" style="font-size:24px">' + summaryLine + '</div>' +
       '<button class="quiz-next" id="quizRestart" style="margin-top:16px">다시 풀기 (복습) →</button>' +
       '</div>';
 
+    var okLabel = "✅ 맞은 단어";
+    var badLabel = "❌ 틀린 단어";
     html += '<div class="qr-wrap">';
     html += '<div class="qr-cols">';
     html += '<div class="qr-col">' +
-      '<div class="qr-section-title ok">✅ 맞은 단어 (' + correctList.length + ')</div>' +
+      '<div class="qr-section-title ok">' + okLabel + ' (' + correctList.length + ')</div>' +
       '<div class="qr-list">' + (correctList.length ? correctList.map(itemHtml).join("") : '<div class="qr-empty">맞은 단어가 없어요.</div>') + '</div>' +
     '</div>';
     html += '<div class="qr-col">' +
-      '<div class="qr-section-title bad">❌ 틀린 단어 (' + wrongList.length + ')</div>' +
+      '<div class="qr-section-title bad">' + badLabel + ' (' + wrongList.length + ')</div>' +
       '<div class="qr-list">' + (wrongList.length ? wrongList.map(itemHtml).join("") : '<div class="qr-empty">틀린 단어가 없어요!</div>') + '</div>' +
     '</div>';
     html += '</div>';
     html += '</div>';
 
     body.innerHTML = html;
-    byId("quizRestart").onclick = startNewQuizSession;
+    byId("quizRestart").onclick = function () {
+      quizPracticeMode = true;
+      startNewQuizSession();
+    };
   }
 
   function renderQuiz(choices) {
     clearPendingSpellNextHandler();
     var body = byId("quizBody");
     var questionNum = quizIdx + 1;
-    var scoreLine = '문제 ' + questionNum + ' / ' + quizQueue.length + ' · 맞음 ' + quizScore.correct + '개 · 틀림 ' + (quizScore.total - quizScore.correct) + '개';
+    var scoreLine = (quizMode === "spelling" && spellingPhase === "retry")
+      ? ('🔁 복습 중 · 남은 단어 ' + spellingRetry.length + '개')
+      : ('문제 ' + questionNum + ' / ' + quizQueue.length + ' · 맞음 ' + quizScore.correct + '개 · 틀림 ' + (quizScore.total - quizScore.correct) + '개');
+    if (quizPracticeMode) scoreLine = '📖 연습 모드(기록에 반영 안 됨) · ' + scoreLine;
     var html = '<div class="quiz-score mono">' + scoreLine + '</div>';
     html += '<div class="quiz-card">';
 
@@ -1532,7 +1702,7 @@
   function recordQuizAnswer(correct, resultExtra) {
     try {
       var quizElapsed = quizQuestionShownAt ? (Date.now() - quizQuestionShownAt) : 0;
-      if (quizElapsed > 0) addTimeMs("quizMs", Math.min(quizElapsed, QUIZ_TIME_CAP_MS));
+      if (quizElapsed > 0 && !quizPracticeMode) addTimeMs("quizMs", Math.min(quizElapsed, QUIZ_TIME_CAP_MS));
     } catch (e) {}
 
     quizScore.total++;
@@ -1542,6 +1712,12 @@
       meaning: quizWord.meaning,
       correct: correct
     }, resultExtra || {}));
+
+    // A practice retake ("다시 풀기") only ever updates the two local
+    // arrays above (so its own on-screen score still works) — it never
+    // touches a word's stats, quiz-exposure tracking, or study time, so
+    // the day's very first graded round stays the permanent record.
+    if (quizPracticeMode) return;
 
     // knowCount/dontKnowCount are counted from quiz answers (correct = 알아요,
     // wrong = 아직 몰라요) — not from the study screen's judge() taps.
@@ -1559,6 +1735,11 @@
     var nextSpelling = quizMode === "spelling" ? patch.spellingMasteryScore : (quizWord.spellingMasteryScore || 0);
     patch.mastered = (nextChoice + nextSpelling) >= MASTERY_SUM_TARGET;
     patch.lastReviewed = fmtTime();
+    // Tracks how often (and how recently) this word has actually been asked
+    // in a graded quiz round, so buildQuizQueue() can favor under-exposed
+    // words instead of picking randomly with no memory of past rounds.
+    patch.quizAskCount = (quizWord.quizAskCount || 0) + 1;
+    patch.lastQuizAt = Date.now();
     Object.assign(quizWord, patch);
 
     renderStats();
@@ -1597,7 +1778,12 @@
     quizAnswered = true;
 
     var correct = normalizeSpelling(typed) === normalizeSpelling(quizWord.word);
-    recordQuizAnswer(correct, { typed: correct ? null : typed.trim() });
+    // Only the first attempt at each word (spellingPhase "first") is graded
+    // and counted toward word mastery / today's saved score — the retry
+    // phase is unrecorded practice until the miss gets spelled correctly.
+    if (spellingPhase === "first") {
+      recordQuizAnswer(correct, { typed: correct ? null : typed.trim() });
+    }
 
     input.disabled = true;
     byId("spellSubmit").disabled = true;
@@ -1608,7 +1794,7 @@
     if (correct) {
       feedback.className = "spell-feedback ok";
       feedback.textContent = "정답이에요! 🎉";
-      setTimeout(function () { advanceQuiz(); }, 1500);
+      setTimeout(function () { advanceSpelling(true); }, 1500);
     } else {
       // Wrong answers don't auto-advance — 인윤이가 정답을 충분히 볼 수 있도록
       // 직접 "다음 →"을 눌러야 (또는 컴퓨터에서는 Enter 키로도) 다음 문제로 넘어간다.
@@ -1618,7 +1804,7 @@
 
       var goNext = function () {
         clearPendingSpellNextHandler();
-        advanceQuiz();
+        advanceSpelling(false);
       };
       pendingSpellNextHandler = function (e) {
         if (e.key === "Enter") goNext();
@@ -2167,6 +2353,9 @@
       quizDone = false;
       quizQueue = [];
       quizIdx = 0;
+      spellingRetry = [];
+      spellingPhase = "first";
+      quizPracticeMode = false;
       document.querySelectorAll("#quizModeToggle button").forEach(function (b) { b.classList.toggle("active", b === btn); });
       renderQuizIfNeeded();
     };
