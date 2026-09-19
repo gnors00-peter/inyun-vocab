@@ -591,10 +591,21 @@
     padding: 10px 12px;
   }
   .review-item input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; width: 17px; height: 17px; }
-  .review-item .rw { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: 15px; color: var(--ink); }
-  .review-item .rm { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-  .review-item .rex { font-size: 11.5px; color: var(--accent); margin-top: 3px; font-style: italic; }
-  .review-item.dup { opacity: 0.55; }
+  .review-item .review-fields { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+  .review-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 9px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .review-input.rw-input { font-family: "Chakra Petch", "JetBrains Mono", monospace; font-weight: 700; font-size: 14px; }
+  .review-input.rm-input { font-size: 12.5px; }
+  .review-input.rex-input { font-size: 11.5px; color: var(--accent); font-style: italic; }
+  .review-item.dup { opacity: 0.7; }
   .review-item .dup-tag { font-size: 10.5px; color: var(--bad); font-weight: 700; margin-top: 2px; }
   .review-loading { text-align: center; padding: 30px 10px; font-size: 13.5px; color: var(--muted); font-weight: 700; }
   .review-empty { text-align: center; padding: 20px 10px; font-size: 13.5px; color: var(--muted); }
@@ -752,7 +763,7 @@
         <button class="submit-btn" id="addBtn">단어장에 추가</button>
         <button class="submit-btn secondary" id="photoAddBtn">📷 사진으로 추가</button>
       </div>
-      <input type="file" id="photoAddInput" accept="image/*" multiple hidden>
+      <input type="file" id="photoAddInput" accept="image/*" capture="environment" hidden>
       <div class="toast" id="addToast"></div>
     </div>
   </section>
@@ -762,6 +773,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 
 <script>
 (function () {
@@ -769,7 +781,6 @@
 
   var words = [];      // full cache from db
   var dbRef = null;
-  var sampleRef = null;
   var currentView = "study";
   var studyQueue = [];
   var studyIdx = 0;
@@ -1051,6 +1062,22 @@
       quizTodayFetching = { choice: false, spelling: false };
       quizTodayResult = { choice: null, spelling: null };
       quizPracticeMode = false;
+      // 날짜가 바뀌었는데 앱이 새로고침 없이 열려 있던 경우(폰 홈 화면 아이콘으로
+      // 열어둔 채 자정을 넘기는 등), 어제 세션의 quizDone/quizQueue 등이 메모리에
+      // 그대로 남아있으면 renderQuizIfNeeded()가 이걸 "오늘도 이미 다 풀었다"로
+      // 착각해서 어제 결과를 오늘 기록인 것처럼 그대로 다시 저장해버리는 버그가
+      // 있었음 — 세션 상태를 전부 같이 초기화해서 오늘 퀴즈를 새로 시작하게 함.
+      clearPendingSpellNextHandler();
+      quizDone = false;
+      quizQueue = [];
+      quizIdx = 0;
+      quizWord = null;
+      quizAnswered = false;
+      quizScore = { correct: 0, total: 0 };
+      quizResults = [];
+      spellingRetry = [];
+      spellingPhase = "first";
+      spellingTotal = 0;
     }
     if (currentView === "study") {
       if (!dailyPlan || dailyPlan.date !== todayStr()) ensureDailyPlan();
@@ -2097,22 +2124,6 @@
   // ---------- PHOTO ADD ----------
   var photoAddBusy = false;
 
-  function buildPhotoPrompt() {
-    var existing = words.map(function (w) { return w.word; }).join(", ");
-    return (
-      "너는 중학교 1학년 학생의 영어 단어장 앱을 돕는 도우미야. " +
-      "첨부된 사진은 손으로 쓰거나 인쇄된 영어 단어 목록(단어장)이야. " +
-      "사진 속에서 읽을 수 있는 영어 단어와 그 한글 뜻을 최대한 정확히 추출해줘.\n\n" +
-      "규칙:\n" +
-      "1. 글씨가 흐릿하거나 확신이 없는 단어는 건너뛰어(포함하지 마).\n" +
-      "2. 각 단어에 대해 중학교 1학년 수준의 쉬운 영어 예문을 새로 만들어줘(사진에 예문이 있으면 참고해도 되지만 없어도 꼭 만들어줘).\n" +
-      "3. 이미 단어장에 있는 단어는 참고용으로 알려줄게 (중복이어도 그냥 포함해도 돼, 앱에서 중복 처리할 거야): " + (existing || "(없음)") + "\n" +
-      "4. 결과는 오직 JSON 배열로만 응답해. 다른 설명 텍스트는 절대 넣지 마.\n" +
-      '5. 형식: [{"word":"apple","meaning":"사과","example":"I eat an apple every morning."}, ...]\n' +
-      "6. 사진에서 단어를 하나도 읽지 못했다면 빈 배열 []을 반환해."
-    );
-  }
-
   function setPhotoAddBusy(busy, label) {
     photoAddBusy = busy;
     var btn = byId("photoAddBtn");
@@ -2120,69 +2131,184 @@
     btn.textContent = busy ? (label || "읽는 중...") : "📷 사진으로 추가";
   }
 
-  function sampleErrorMessage(err) {
-    var code = err && err.code;
-    switch (code) {
-      case "cancelled":
-        return null; // silent
-      case "not_granted":
-      case "sampling_disabled":
-      case "not_declared":
-      case "capability_disabled":
-      case "capability_removed":
-        return "이 기능을 사용할 수 없어요. (Claude 사용 권한이 꺼져 있어요)";
-      case "images_unavailable":
-        return "이 화면에서는 사진을 분석할 수 없어요.";
-      case "rate_limited":
-        return "잠시 요청이 많아요. 조금 이따가 다시 시도해주세요.";
-      case "session_expired":
-        return "세션이 만료됐어요. 새로고침 후 다시 시도해주세요.";
-      case "image_rejected":
-        return "사진을 인식할 수 없어요. 다른 사진으로 시도해주세요.";
-      case "empty_completion":
-      case "invalid_json":
-        return "사진에서 단어를 읽어오지 못했어요. 더 선명한 사진으로 시도해주세요.";
-      case "refused":
-        return "요청을 처리할 수 없었어요.";
-      default:
-        return "사진을 읽어오는 중 문제가 생겼어요. 다시 시도해주세요.";
-    }
+  // 사진을 브라우저 안에서 직접 OCR(Tesseract.js, 영어+한글)로 읽어서
+  // "왼쪽=영어 단어 / 오른쪽=한글 뜻" 두 컬럼 구조를 좌표 기반으로 짝지어준다.
+  // 서버도 API 키도 필요 없지만(완전 무료), 인식 결과가 100% 정확하진 않아서
+  // openPhotoReviewModal에서 단어/뜻/예문을 직접 고칠 수 있게 해둠.
+  function isLatinWord(t) { return /^[A-Za-z][A-Za-z'\-]*$/.test(t); }
+  function hasHangul(t) { return /[가-힣]/.test(t); }
+
+  function median(nums) {
+    var s = nums.slice().sort(function (a, b) { return a - b; });
+    var mid = Math.floor(s.length / 2);
+    return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+  }
+
+  function groupIntoLines(list, rowGap) {
+    var sorted = list.slice().sort(function (a, b) { return a.cy - b.cy; });
+    var lines = [];
+    sorted.forEach(function (t) {
+      var last = lines[lines.length - 1];
+      if (last && Math.abs(t.cy - last.cy) <= rowGap) {
+        last.tokens.push(t);
+        last.cy = (last.cy * (last.tokens.length - 1) + t.cy) / last.tokens.length;
+      } else {
+        lines.push({ cy: t.cy, tokens: [t] });
+      }
+    });
+    return lines.map(function (line) {
+      var sortedTokens = line.tokens.slice().sort(function (a, b) { return a.x0 - b.x0; });
+      return { cy: line.cy, text: sortedTokens.map(function (t) { return t.text; }).join(" ") };
+    });
+  }
+
+  function ocrTokens(data) {
+    var raw = (data && data.words) || [];
+    return raw.map(function (w) {
+      var text = (w.text || "").trim();
+      var box = w.bbox || {};
+      if (!text || box.x0 == null || box.y0 == null) return null;
+      return {
+        text: text,
+        x0: box.x0,
+        cx: (box.x0 + box.x1) / 2,
+        cy: (box.y0 + box.y1) / 2,
+        h: box.y1 - box.y0
+      };
+    }).filter(Boolean);
+  }
+
+  // 사진에 "영어 단어 / 한글 뜻" 두 컬럼이 모두 있는 경우: 좌표로 좌/우 컬럼을
+  // 나누고 같은 줄끼리 짝지어서 word+meaning을 함께 뽑아낸다.
+  function parseVocabWords(data) {
+    var tokens = ocrTokens(data);
+    if (tokens.length === 0) return [];
+
+    var latinTokens = tokens.filter(function (t) { return isLatinWord(t.text); });
+    var hangulTokens = tokens.filter(function (t) { return hasHangul(t.text); });
+    if (latinTokens.length === 0 || hangulTokens.length === 0) return [];
+
+    var leftMedianCx = median(latinTokens.map(function (t) { return t.cx; }));
+    var rightMedianCx = median(hangulTokens.map(function (t) { return t.cx; }));
+    if (rightMedianCx <= leftMedianCx) return []; // 두 컬럼 구조가 아니면 포기(영어 단어만 있는 사진일 수 있음)
+    var splitX = (leftMedianCx + rightMedianCx) / 2;
+
+    var medianH = median(tokens.map(function (t) { return t.h; })) || 20;
+    var rowGap = medianH * 0.7;
+
+    var leftLines = groupIntoLines(tokens.filter(function (t) { return t.cx < splitX && isLatinWord(t.text); }), rowGap);
+    var rightLines = groupIntoLines(tokens.filter(function (t) { return t.cx >= splitX; }), rowGap)
+      .map(function (line) { return { cy: line.cy, text: line.text.replace(/^[^가-힣(\[]+/, "").trim() }; })
+      .filter(function (line) { return line.text; });
+    if (leftLines.length === 0 || rightLines.length === 0) return [];
+
+    var usedRight = [];
+    var items = leftLines.map(function (line) {
+      var bestIdx = -1, bestDist = Infinity;
+      rightLines.forEach(function (r, idx) {
+        if (usedRight.indexOf(idx) !== -1) return;
+        var dist = Math.abs(r.cy - line.cy);
+        if (dist < bestDist) { bestDist = dist; bestIdx = idx; }
+      });
+      var meaning = "";
+      if (bestIdx !== -1 && bestDist <= rowGap * 2.5) {
+        meaning = rightLines[bestIdx].text;
+        usedRight.push(bestIdx);
+      }
+      return { word: line.text.trim(), meaning: meaning, example: "" };
+    });
+
+    return items.filter(function (it) { return it.word && it.meaning; });
+  }
+
+  // 사진에 영어 단어만 있고 한글 뜻이 없는 경우: 줄 단위로 단어만 뽑아낸다
+  // (뜻은 translateWordToKorean()으로 나중에 채움).
+  function parseEnglishOnlyWords(data) {
+    var tokens = ocrTokens(data).filter(function (t) { return isLatinWord(t.text); });
+    if (tokens.length === 0) return [];
+    var medianH = median(tokens.map(function (t) { return t.h; })) || 20;
+    var rowGap = medianH * 0.7;
+    return groupIntoLines(tokens, rowGap)
+      .map(function (line) { return line.text.trim(); })
+      .filter(Boolean);
+  }
+
+  // MyMemory(무료, API 키 불필요)로 영어 단어 하나의 한글 뜻을 찾는다.
+  // 번역을 못 찾거나 원문을 그대로 돌려주면 빈 문자열(사용자가 직접 채워넣게).
+  function translateWordToKorean(word) {
+    var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(word) + "&langpair=en|ko";
+    return fetch(url).then(function (res) { return res.json(); }).then(function (data) {
+      if (!data || String(data.responseStatus) !== "200") return "";
+      var text = ((data.responseData && data.responseData.translatedText) || "").trim();
+      if (!text || text.toLowerCase() === word.trim().toLowerCase()) return "";
+      return text;
+    }).catch(function () { return ""; });
+  }
+
+  // items를 동시에 최대 limit개씩만 처리(무료 API 과호출 방지 + 진행률 표시).
+  function mapWithConcurrency(items, limit, fn, onProgress) {
+    return new Promise(function (resolve) {
+      var results = new Array(items.length);
+      if (items.length === 0) { resolve(results); return; }
+      var nextIndex = 0;
+      var doneCount = 0;
+      function startOne() {
+        if (nextIndex >= items.length) return;
+        var idx = nextIndex++;
+        fn(items[idx]).then(function (r) { results[idx] = r; }, function () { results[idx] = ""; }).then(function () {
+          doneCount++;
+          if (onProgress) onProgress(doneCount, items.length);
+          if (nextIndex < items.length) startOne();
+          else if (doneCount === items.length) resolve(results);
+        });
+      }
+      var starters = Math.min(limit, items.length);
+      for (var i = 0; i < starters; i++) startOne();
+    });
   }
 
   function handlePhotoFiles(files) {
     if (!files || files.length === 0) return;
-    if (!sampleRef) {
-      showInfoModal("이 기기/화면에서는 사진으로 단어 읽기 기능을 사용할 수 없어요.");
+    if (typeof Tesseract === "undefined") {
+      showInfoModal("사진 분석 기능을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침 후 다시 시도해주세요.");
       return;
     }
     if (photoAddBusy) return;
-    setPhotoAddBusy(true);
-    sampleRef.limits().then(function (limits) {
-      if (!limits || !limits.images) {
+    var file = files[0];
+    setPhotoAddBusy(true, "사진 읽는 중...");
+    Tesseract.recognize(file, "eng+kor", {
+      logger: function (m) {
+        if (m.status === "recognizing text" && typeof m.progress === "number") {
+          setPhotoAddBusy(true, "읽는 중... " + Math.round(m.progress * 100) + "%");
+        }
+      }
+    }).then(function (result) {
+      var items = parseVocabWords(result.data);
+      if (items.length > 0) {
         setPhotoAddBusy(false);
-        showInfoModal("이 화면에서는 사진 분석 기능을 사용할 수 없어요.");
+        openPhotoReviewModal(items);
         return;
       }
-      var maxCount = limits.images.maxCount || 1;
-      var picked = Array.prototype.slice.call(files, 0, maxCount);
-      return sampleRef.json(buildPhotoPrompt(), { images: picked, modelTier: "default", cache: false })
-        .then(function (data) {
-          setPhotoAddBusy(false);
-          var items = Array.isArray(data) ? data : (data && Array.isArray(data.items) ? data.items : null);
-          if (!items) {
-            showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 선명한 사진으로 시도해주세요.");
-            return;
-          }
-          openPhotoReviewModal(items);
-        })
-        .catch(function (err) {
-          setPhotoAddBusy(false);
-          var msg = sampleErrorMessage(err);
-          if (msg) showInfoModal(msg);
+      // 한글 뜻 컬럼을 못 찾음 → 영어 단어만 있는 사진으로 보고 뜻을 자동으로 찾아본다.
+      var wordsOnly = parseEnglishOnlyWords(result.data);
+      if (wordsOnly.length === 0) {
+        setPhotoAddBusy(false);
+        showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 밝고 또렷하게 찍어주세요.");
+        return;
+      }
+      setPhotoAddBusy(true, "뜻 찾는 중... 0/" + wordsOnly.length);
+      mapWithConcurrency(wordsOnly, 4, translateWordToKorean, function (done, total) {
+        setPhotoAddBusy(true, "뜻 찾는 중... " + done + "/" + total);
+      }).then(function (meanings) {
+        setPhotoAddBusy(false);
+        var built = wordsOnly.map(function (w, i) {
+          return { word: w, meaning: meanings[i] || "", example: "" };
         });
+        openPhotoReviewModal(built);
+      });
     }).catch(function () {
       setPhotoAddBusy(false);
-      showInfoModal("사진 분석 기능을 준비하지 못했어요. 다시 시도해주세요.");
+      showInfoModal("사진을 읽는 중 문제가 생겼어요. 다시 시도해주세요.");
     });
   }
 
@@ -2195,7 +2321,7 @@
           example: String((it && it.example) || "").trim()
         };
       })
-      .filter(function (it) { return it.word && it.meaning; });
+      .filter(function (it) { return it.word; });
 
     if (cleaned.length === 0) {
       showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 선명한 사진으로 시도해주세요.");
@@ -2210,22 +2336,22 @@
     var rowsHtml = cleaned.map(function (it, i) {
       var isDup = !!existingWords[it.word.toLowerCase()];
       return (
-        '<label class="review-item' + (isDup ? " dup" : "") + '">' +
+        '<div class="review-item' + (isDup ? " dup" : "") + '">' +
           '<input type="checkbox" data-idx="' + i + '"' + (isDup ? "" : " checked") + '>' +
-          "<span>" +
-            '<div class="rw">' + escapeHtml(it.word) + "</div>" +
-            '<div class="rm">' + escapeHtml(it.meaning) + "</div>" +
-            (it.example ? '<div class="rex">' + escapeHtml(it.example) + "</div>" : "") +
+          '<span class="review-fields">' +
+            '<input type="text" class="review-input rw-input" value="' + escapeHtml(it.word) + '" placeholder="단어">' +
+            '<input type="text" class="review-input rm-input" value="' + escapeHtml(it.meaning) + '" placeholder="뜻">' +
+            '<input type="text" class="review-input rex-input" value="' + escapeHtml(it.example) + '" placeholder="예문(선택)">' +
             (isDup ? '<div class="dup-tag">이미 단어장에 있어요</div>' : "") +
           "</span>" +
-        "</label>"
+        "</div>"
       );
     }).join("");
 
     overlay.innerHTML =
       '<div class="review-box">' +
         "<h3>사진에서 " + cleaned.length + "개의 단어를 찾았어요</h3>" +
-        '<div class="review-sub">추가할 단어를 확인하고 체크해주세요. (이미 있는 단어는 기본적으로 체크 해제되어 있어요)</div>' +
+        '<div class="review-sub">인식이 틀린 부분은 직접 고칠 수 있어요. 추가할 단어를 확인하고 체크해주세요. (이미 있는 단어는 기본적으로 체크 해제되어 있어요)</div>' +
         '<div class="review-list">' + rowsHtml + "</div>" +
         '<div class="confirm-actions">' +
           '<button class="cancel" id="reviewCancelBtn">취소</button>' +
@@ -2238,14 +2364,20 @@
     overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
     overlay.querySelector("#reviewCancelBtn").onclick = close;
     overlay.querySelector("#reviewOkBtn").onclick = function () {
-      var checked = Array.prototype.filter.call(
-        overlay.querySelectorAll('input[type="checkbox"]'),
-        function (cb) { return cb.checked; }
+      var checkedRows = Array.prototype.filter.call(
+        overlay.querySelectorAll(".review-item"),
+        function (row) { return row.querySelector('input[type="checkbox"]').checked; }
       );
-      if (checked.length === 0) { close(); return; }
+      if (checkedRows.length === 0) { close(); return; }
       if (!dbRef) { close(); showInfoModal("저장소를 사용할 수 없어요."); return; }
-      var toAdd = checked.map(function (cb) { return cleaned[parseInt(cb.getAttribute("data-idx"), 10)]; });
-      var pending = toAdd.length;
+      var toAdd = checkedRows.map(function (row) {
+        return {
+          word: row.querySelector(".rw-input").value.trim(),
+          meaning: row.querySelector(".rm-input").value.trim(),
+          example: row.querySelector(".rex-input").value.trim()
+        };
+      }).filter(function (it) { return it.word && it.meaning; });
+      if (toAdd.length === 0) { close(); return; }
       close();
       toAdd.forEach(function (it) {
         dbRef.collection("words").add({
@@ -2268,10 +2400,6 @@
   }
 
   byId("photoAddBtn").onclick = function () {
-    if (!sampleRef) {
-      showInfoModal("이 기기/화면에서는 사진으로 단어 읽기 기능을 사용할 수 없어요.");
-      return;
-    }
     byId("photoAddInput").click();
   };
   byId("photoAddInput").addEventListener("change", function (e) {
@@ -2375,9 +2503,9 @@
   byId("listSearch").addEventListener("input", renderList);
 
   // ---------- boot (Firebase) ----------
-  // 사진으로 단어 추가 기능(Claude AI 활용)은 Claude 안에서만 동작해서
-  // 외부 호스팅 버전에서는 sampleRef가 항상 null로 남고, 기존 코드가
-  // 이를 감지해서 안내 메시지를 보여주며 자연스럽게 비활성화돼요.
+  // 사진으로 단어 추가 기능은 서버 없이 브라우저 안에서 Tesseract.js로 OCR한다
+  // (완전 무료, API 키 불필요). 대신 인식 정확도가 100%는 아니라서 결과를
+  // Firestore에 저장하기 전에 리뷰 모달에서 직접 고칠 수 있게 해뒀다.
   var firebaseConfig = {
     apiKey: "AIzaSyC_vILEd6JvK4a3uAf6UnSsLKt8623q9bQ",
     authDomain: "inyun-vocab.firebaseapp.com",
