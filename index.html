@@ -2131,12 +2131,18 @@
     btn.textContent = busy ? (label || "읽는 중...") : "📷 사진으로 추가";
   }
 
-  // 사진을 브라우저 안에서 직접 OCR(Tesseract.js, 영어+한글)로 읽어서
-  // "왼쪽=영어 단어 / 오른쪽=한글 뜻" 두 컬럼 구조를 좌표 기반으로 짝지어준다.
-  // 서버도 API 키도 필요 없지만(완전 무료), 인식 결과가 100% 정확하진 않아서
-  // openPhotoReviewModal에서 단어/뜻/예문을 직접 고칠 수 있게 해둠.
+  // 사진을 브라우저 안에서 직접 OCR(Tesseract.js)로 읽는다. 서버도 API 키도
+  // 필요 없지만(완전 무료), "영어+한글 동시 인식"으로 한 번에 읽으면 정확도가
+  // 낮아서(두 문자 체계를 한꺼번에 추측하다 보니 서로 헷갈림) 2단계로 나눔:
+  //   1차: 전체 사진을 eng+kor로 대충 한 번 읽어서 "왼쪽=영어/오른쪽=한글" 두
+  //        컬럼의 경계(x좌표)만 찾는다 (실제 단어/뜻 텍스트는 버림).
+  //   2차: 그 경계로 사진을 좌/우로 잘라서, 각각 흑백+대비 보정 후 단일
+  //        언어(eng만/kor만)로 다시 인식 — 훨씬 정확함.
+  // 그래도 100% 정확하진 않아서 openPhotoReviewModal에서 단어/뜻/예문을 직접
+  // 고칠 수 있게 해둠.
   function isLatinWord(t) { return /^[A-Za-z][A-Za-z'\-]*$/.test(t); }
   function hasHangul(t) { return /[가-힣]/.test(t); }
+  var ENG_WHITELIST = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'-";
 
   function median(nums) {
     var s = nums.slice().sort(function (a, b) { return a - b; });
@@ -2178,26 +2184,34 @@
     }).filter(Boolean);
   }
 
-  // 사진에 "영어 단어 / 한글 뜻" 두 컬럼이 모두 있는 경우: 좌표로 좌/우 컬럼을
-  // 나누고 같은 줄끼리 짝지어서 word+meaning을 함께 뽑아낸다.
-  function parseVocabWords(data) {
+  // 1차(대충) 인식 결과에서 "왼쪽=영어 / 오른쪽=한글" 두 컬럼의 경계 x좌표만
+  // 찾는다. 두 컬럼 구조가 아니면(=영어 단어만 있는 사진, 또는 교과서 부록의
+  // "단어+페이지 번호" 색인처럼 한글이 제목/꼬리말 몇 글자뿐인 사진) null.
+  // 한글 토큰이 5개 미만이면 "우연히 섞인 한글"로 보고 진짜 두 컬럼으로 취급
+  // 안 함 — 안 그러면 페이지 번호를 한글 뜻으로 착각해서 잘못 매칭할 수 있음.
+  function findColumnSplitX(data) {
     var tokens = ocrTokens(data);
-    if (tokens.length === 0) return [];
-
     var latinTokens = tokens.filter(function (t) { return isLatinWord(t.text); });
     var hangulTokens = tokens.filter(function (t) { return hasHangul(t.text); });
-    if (latinTokens.length === 0 || hangulTokens.length === 0) return [];
-
+    if (latinTokens.length === 0 || hangulTokens.length < 5) return null;
     var leftMedianCx = median(latinTokens.map(function (t) { return t.cx; }));
     var rightMedianCx = median(hangulTokens.map(function (t) { return t.cx; }));
-    if (rightMedianCx <= leftMedianCx) return []; // 두 컬럼 구조가 아니면 포기(영어 단어만 있는 사진일 수 있음)
-    var splitX = (leftMedianCx + rightMedianCx) / 2;
+    if (rightMedianCx <= leftMedianCx) return null;
+    return (leftMedianCx + rightMedianCx) / 2;
+  }
 
-    var medianH = median(tokens.map(function (t) { return t.h; })) || 20;
-    var rowGap = medianH * 0.7;
+  // 2차(정제) 인식 결과: 좌/우로 잘라서 각각 단일 언어로 다시 읽은 두 결과를
+  // 같은 줄끼리 짝지어서 word+meaning을 뽑아낸다.
+  function pairColumnLines(leftData, rightData) {
+    var leftTokens = ocrTokens(leftData).filter(function (t) { return isLatinWord(t.text); });
+    var rightTokens = ocrTokens(rightData);
+    if (leftTokens.length === 0 || rightTokens.length === 0) return [];
 
-    var leftLines = groupIntoLines(tokens.filter(function (t) { return t.cx < splitX && isLatinWord(t.text); }), rowGap);
-    var rightLines = groupIntoLines(tokens.filter(function (t) { return t.cx >= splitX; }), rowGap)
+    var allH = leftTokens.concat(rightTokens).map(function (t) { return t.h; });
+    var rowGap = (median(allH) || 20) * 0.7;
+
+    var leftLines = groupIntoLines(leftTokens, rowGap);
+    var rightLines = groupIntoLines(rightTokens, rowGap)
       .map(function (line) { return { cy: line.cy, text: line.text.replace(/^[^가-힣(\[]+/, "").trim() }; })
       .filter(function (line) { return line.text; });
     if (leftLines.length === 0 || rightLines.length === 0) return [];
@@ -2231,6 +2245,96 @@
     return groupIntoLines(tokens, rowGap)
       .map(function (line) { return line.text.trim(); })
       .filter(Boolean);
+  }
+
+  // ---- 이미지 전처리(2차 인식 정확도를 위해): 크롭 + 확대 + 흑백/대비 보정 ----
+  function loadImageFromFile(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () { resolve({ img: img, url: url }); };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("image_load_failed")); };
+      img.src = url;
+    });
+  }
+
+  // 원본 이미지의 (sx,sy,sw,sh) 영역을 scale배로 확대해 그린 뒤, 흑백 변환 +
+  // 대비를 최대로 늘려(min~max를 0~255로 스트레치) 텍스트 획을 또렷하게 만든다.
+  // 사진마다 밝기/그림자가 달라도 어느 정도 보정되는 간단하고 빠른 방법.
+  function cropAndEnhance(img, sx, sy, sw, sh, scale) {
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(sw * scale));
+    canvas.height = Math.max(1, Math.round(sh * scale));
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+
+    var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var d = imgData.data;
+    var n = d.length / 4;
+    var gray = new Float32Array(n);
+    var min = 255, max = 0;
+    for (var i = 0, j = 0; j < n; i += 4, j++) {
+      var g = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+      gray[j] = g;
+      if (g < min) min = g;
+      if (g > max) max = g;
+    }
+    var range = Math.max(1, max - min);
+    for (var i2 = 0, j2 = 0; j2 < n; i2 += 4, j2++) {
+      var v = ((gray[j2] - min) / range) * 255;
+      d[i2] = d[i2 + 1] = d[i2 + 2] = v;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    return canvas;
+  }
+
+  // 원본 이미지를 angleDeg(0/90/180/270)만큼 회전해서 새 캔버스에 그린다.
+  // maxDim이 있으면 회전 전에 그 크기로 축소(방향 탐지용 — 빠르게 하려고).
+  function rotateCanvas(imgSource, angleDeg, maxDim) {
+    var w = imgSource.naturalWidth || imgSource.width;
+    var h = imgSource.naturalHeight || imgSource.height;
+    var scale = 1;
+    if (maxDim) {
+      var longest = Math.max(w, h);
+      if (longest > maxDim) scale = maxDim / longest;
+    }
+    var sw = w * scale, sh = h * scale;
+    var swap = (angleDeg === 90 || angleDeg === 270);
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(swap ? sh : sw));
+    canvas.height = Math.max(1, Math.round(swap ? sw : sh));
+    var ctx = canvas.getContext("2d");
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate(angleDeg * Math.PI / 180);
+    ctx.drawImage(imgSource, -sw / 2, -sh / 2, sw, sh);
+    ctx.restore();
+    return canvas;
+  }
+
+  // 사진이 옆으로/거꾸로 찍혔을 때 대비: 후보 회전각마다 작게 축소한 이미지로
+  // 빠르게 영어 OCR을 해보고, 알파벳 단어가 제일 많이 "제대로" 읽히는 방향을
+  // 고른다(정식 인식이 아니라 방향만 알아내는 용도라 작고 빠르게).
+  function quickOrientationScore(imgSource, angle) {
+    var small = rotateCanvas(imgSource, angle, 700);
+    return Tesseract.recognize(small, "eng").then(function (res) {
+      return ocrTokens(res.data).filter(function (t) { return isLatinWord(t.text) && t.text.length >= 2; }).length;
+    }).catch(function () { return 0; });
+  }
+
+  function bestOrientation(imgSource) {
+    var angles = [0, 90, 180, 270];
+    return angles.reduce(function (chain, angle) {
+      return chain.then(function (acc) {
+        return quickOrientationScore(imgSource, angle).then(function (score) {
+          acc.push({ angle: angle, score: score });
+          return acc;
+        });
+      });
+    }, Promise.resolve([])).then(function (results) {
+      results.sort(function (a, b) { return b.score - a.score; });
+      return results[0].score > 0 ? results[0].angle : 0;
+    });
   }
 
   // MyMemory(무료, API 키 불필요)로 영어 단어 하나의 한글 뜻을 찾는다.
@@ -2267,6 +2371,56 @@
     });
   }
 
+  function resultCount(result) {
+    return result.mode === "two-column" ? result.items.length : result.wordsOnly.length;
+  }
+
+  // imgSource(이미지 또는 캔버스, 이미 올바른 방향이라고 가정)에 2단계 인식을
+  // 적용한다: 1차로 대충 읽어서 두 컬럼 구조인지 확인 → 두 컬럼이면 좌/우를
+  // 잘라 각각 정밀 재인식, 아니면 영어 전용으로 정밀 재인식.
+  function runOcrPipeline(imgSource) {
+    var w = imgSource.naturalWidth || imgSource.width;
+    var h = imgSource.naturalHeight || imgSource.height;
+    setPhotoAddBusy(true, "사진 읽는 중...");
+    return Tesseract.recognize(imgSource, "eng+kor", {
+      logger: function (m) {
+        if (m.status === "recognizing text" && typeof m.progress === "number") {
+          setPhotoAddBusy(true, "읽는 중... " + Math.round(m.progress * 100) + "%");
+        }
+      }
+    }).then(function (firstPass) {
+      var splitX = findColumnSplitX(firstPass.data);
+
+      if (splitX == null) {
+        // 두 컬럼 구조를 못 찾음 → 영어 단어만 있는 사진으로 보고, 전체를
+        // 흑백/대비 보정 + 확대해서 영어 전용으로 한 번 더 정밀하게 읽는다.
+        setPhotoAddBusy(true, "다시 정밀하게 읽는 중...");
+        var wholeCanvas = cropAndEnhance(imgSource, 0, 0, w, h, 1.6);
+        return Tesseract.recognize(wholeCanvas, "eng", {
+          tessedit_pageseg_mode: "6",
+          tessedit_char_whitelist: ENG_WHITELIST
+        }).then(function (refined) {
+          return { mode: "english-only", wordsOnly: parseEnglishOnlyWords(refined.data) };
+        });
+      }
+
+      // 두 컬럼 구조 발견 → 좌/우로 잘라서 각각 단일 언어로 정밀하게 재인식.
+      setPhotoAddBusy(true, "단어·뜻 정밀하게 읽는 중...");
+      var pad = Math.round(w * 0.015);
+      var leftW = Math.min(w, splitX + pad);
+      var rightX = Math.max(0, splitX - pad);
+      var leftCanvas = cropAndEnhance(imgSource, 0, 0, leftW, h, 1.6);
+      var rightCanvas = cropAndEnhance(imgSource, rightX, 0, w - rightX, h, 1.6);
+
+      return Promise.all([
+        Tesseract.recognize(leftCanvas, "eng", { tessedit_pageseg_mode: "6", tessedit_char_whitelist: ENG_WHITELIST }),
+        Tesseract.recognize(rightCanvas, "kor", { tessedit_pageseg_mode: "6" })
+      ]).then(function (pair) {
+        return { mode: "two-column", items: pairColumnLines(pair[0].data, pair[1].data) };
+      });
+    });
+  }
+
   function handlePhotoFiles(files) {
     if (!files || files.length === 0) return;
     if (typeof Tesseract === "undefined") {
@@ -2275,24 +2429,37 @@
     }
     if (photoAddBusy) return;
     var file = files[0];
-    setPhotoAddBusy(true, "사진 읽는 중...");
-    Tesseract.recognize(file, "eng+kor", {
-      logger: function (m) {
-        if (m.status === "recognizing text" && typeof m.progress === "number") {
-          setPhotoAddBusy(true, "읽는 중... " + Math.round(m.progress * 100) + "%");
-        }
-      }
+    var objectUrl = null;
+    setPhotoAddBusy(true, "사진 불러오는 중...");
+
+    loadImageFromFile(file).then(function (loaded) {
+      objectUrl = loaded.url;
+      var img = loaded.img;
+      return runOcrPipeline(img).then(function (result) {
+        if (resultCount(result) >= 2) return result;
+        // 거의 못 읽음 → 사진이 옆으로/거꾸로 찍혔을 수 있으니 방향을 다시
+        // 찾아서 그 방향으로 재시도한다 (원본 그대로가 이미 최선일 수도 있음).
+        setPhotoAddBusy(true, "사진 방향 확인 중...");
+        return bestOrientation(img).then(function (angle) {
+          if (angle === 0) return result;
+          var rotated = rotateCanvas(img, angle, null);
+          return runOcrPipeline(rotated).then(function (retry) {
+            return resultCount(retry) > resultCount(result) ? retry : result;
+          });
+        });
+      });
     }).then(function (result) {
-      var items = parseVocabWords(result.data);
-      if (items.length > 0) {
-        setPhotoAddBusy(false);
-        openPhotoReviewModal(items);
+      setPhotoAddBusy(false);
+      if (result.mode === "two-column") {
+        if (result.items.length === 0) {
+          showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 밝고 또렷하게, 흔들리지 않게 찍어주세요.");
+          return;
+        }
+        openPhotoReviewModal(result.items);
         return;
       }
-      // 한글 뜻 컬럼을 못 찾음 → 영어 단어만 있는 사진으로 보고 뜻을 자동으로 찾아본다.
-      var wordsOnly = parseEnglishOnlyWords(result.data);
+      var wordsOnly = result.wordsOnly;
       if (wordsOnly.length === 0) {
-        setPhotoAddBusy(false);
         showInfoModal("사진에서 단어를 읽어오지 못했어요. 더 밝고 또렷하게 찍어주세요.");
         return;
       }
@@ -2309,6 +2476,8 @@
     }).catch(function () {
       setPhotoAddBusy(false);
       showInfoModal("사진을 읽는 중 문제가 생겼어요. 다시 시도해주세요.");
+    }).then(function () {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     });
   }
 
