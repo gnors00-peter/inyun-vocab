@@ -1397,7 +1397,7 @@
   // 나온 외운 단어는 일정 기간(며칠) 동안 다시 복습 후보에서 빼서, 외운
   // 단어가 적을 때는 오히려 복습 빈도를 낮춤 — 단어가 많아지면 자연히
   // 로테이션되면서 원래 의도(가끔 복습)대로 동작함.
-  var MASTERED_REVIEW_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3일
+  var MASTERED_REVIEW_COOLDOWN_MS = 10 * 24 * 60 * 60 * 1000; // 10일
   function offMasteredCooldown(w) {
     return !w.lastQuizAt || (Date.now() - w.lastQuizAt) >= MASTERED_REVIEW_COOLDOWN_MS;
   }
