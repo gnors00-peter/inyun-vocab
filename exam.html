@@ -1118,6 +1118,11 @@
     currentStudyCardId = null;
   }
 
+  // 시험대비 단어장은 하루 중에도 단어가 계속 추가/수정될 수 있어서, 계획을
+  // 한 번 저장해두고 그대로 재사용하면 나중에 추가한 단어가 그날 학습에 계속
+  // 안 나오는 문제가 있었음(2026-09-24, 두 번 발생) — 그래서 매번 "현재
+  // 전체 단어"로 새로 계산해서 덮어씀(index.html은 다름: 949개 중 매일 50개를
+  // 고정 선정하는 게 의도된 동작이라 그대로 둠).
   function ensureDailyPlan() {
     if (!dbRef || words.length === 0 || planLoading) return;
     var date = todayStr();
@@ -1125,14 +1130,9 @@
     var planRef = dbRef.doc("examDailyPlans/" + date);
     var logRef = dbRef.doc("examDailyLogs/" + date);
     Promise.all([planRef.get(), logRef.get()]).then(function (res) {
-      var planSnap = res[0], logSnap = res[1];
-      var wordIds;
-      if (planSnap.exists && planSnap.data() && Array.isArray(planSnap.data().wordIds) && planSnap.data().wordIds.length) {
-        wordIds = planSnap.data().wordIds;
-      } else {
-        wordIds = pickDailyWords().map(function (w) { return w.id; });
-        planRef.set({ wordIds: wordIds, createdAt: fmtTime() }).catch(function () {});
-      }
+      var logSnap = res[1];
+      var wordIds = pickDailyWords().map(function (w) { return w.id; });
+      planRef.set({ wordIds: wordIds, createdAt: fmtTime() }).catch(function () {});
       dailyPlan = { date: date, wordIds: wordIds };
       dailyLogEntries = (logSnap.exists && logSnap.data() && logSnap.data().entries) || {};
       planLoading = false;
