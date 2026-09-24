@@ -789,7 +789,6 @@
   var quizAnswered = false;
   var quizScore = { correct: 0, total: 0 };
   var quizResults = []; // { word, meaning, correct, ... } for each answered question, in order
-  var QUIZ_LIMIT = 50;
   var quizDone = false;
   var quizQueue = [];
   var quizIdx = 0;
@@ -858,8 +857,6 @@
       pendingSpellNextHandler = null;
     }
   }
-
-  var DAILY_TARGET = 50;
 
   // Mastery scoring: 뜻 고르기 퀴즈와 철자 쓰기 퀴즈의 점수를 서로 독립적으로
   // 채점한다. 각 모드마다 정답 = +1점, 오답 = -1점 (0~3점 범위, 3점을
@@ -1096,15 +1093,13 @@
   }
 
   // ---------- STUDY (daily plan) ----------
+  // 시험대비 단어장(exam.html)은 index.html과 달리 단어 수가 적어서(현재
+  // 50개) DAILY_TARGET으로 일부만 골라 담을 필요가 없음 — 매일 "전체 단어를
+  // 랜덤 순서로" 학습하도록 의도적으로 index.html과 다르게 구현함
+  // (2026-09-24). shuffleArr()는 아래쪽에 정의되어 있지만 함수 선언이라
+  // 호이스팅되어 여기서 먼저 호출해도 문제 없음.
   function pickDailyWords() {
-    var pool = words.slice();
-    // least-recently-reviewed first (never-reviewed words sort first), random tie-break
-    pool.sort(function (a, b) {
-      var ar = a.lastReviewed || 0, br = b.lastReviewed || 0;
-      if (ar !== br) return ar - br;
-      return Math.random() - 0.5;
-    });
-    return pool.slice(0, Math.min(DAILY_TARGET, pool.length));
+    return shuffleArr(words);
   }
 
   function hydrateStudyFromPlan() {
@@ -1244,7 +1239,7 @@
       }
       var doneCount = Object.keys(dailyLogEntries).length;
       var reviewBtn = doneCount > 0 ? '<button class="submit-btn" id="startReviewBtn" style="margin-top:14px">🔁 오늘 배운 단어 다시 보기</button>' : '';
-      body.innerHTML = '<div class="deck-empty">🎉 오늘 목표 단어(' + dailyPlan.wordIds.length + '개)를 모두 학습했어요!<br>내일 새로운 50개가 준비돼요. “기록” 탭에서 오늘 배운 단어를 확인해보세요.<br>' + reviewBtn + '</div>';
+      body.innerHTML = '<div class="deck-empty">🎉 오늘 단어(' + dailyPlan.wordIds.length + '개)를 모두 학습했어요!<br>내일도 전체 단어를 새로운 순서로 다시 학습할 수 있어요. “기록” 탭에서 오늘 배운 단어를 확인해보세요.<br>' + reviewBtn + '</div>';
       if (doneCount > 0) byId("startReviewBtn").onclick = startReview;
       return;
     }
@@ -1356,73 +1351,11 @@
     return a;
   }
 
-  // Build this quiz session's word list: studied words first (falls back to
-  // the whole deck if nothing has been studied yet), weighted toward the
-  // ones not yet mastered ("모르는 단어"). If fewer than 40 unmastered words
-  // exist, everything studied is included with no ratio applied; otherwise
-  // the session is capped at 50 questions split 4:1 unknown:known. No word
-  // repeats within a session.
-  // Orders words by how little they've been asked in past graded quiz
-  // rounds — never-asked words (quizAskCount 0) first, then least-recently
-  // asked — so buildQuizQueue() below fills each day's round with the most
-  // under-exposed words instead of picking uniformly at random (which let
-  // some words like a well-known "restroom" keep coming up by luck while
-  // others never got picked at all). A small random jitter breaks ties
-  // between words with equal exposure so it doesn't feel robotic.
-  // quizAskCount is a new field — for a word that predates it, fall back to
-  // (correctCount + wrongCount), which was already being incremented on
-  // every graded quiz answer, so past exposure isn't treated as a blank
-  // slate the first time this runs.
-  function exposureCount(w) {
-    if (w.quizAskCount != null) return w.quizAskCount;
-    return (w.correctCount || 0) + (w.wrongCount || 0);
-  }
-
-  function sortByExposure(arr) {
-    return arr
-      .map(function (w) { return { w: w, jitter: Math.random() }; })
-      .sort(function (a, b) {
-        var ac = exposureCount(a.w), bc = exposureCount(b.w);
-        if (ac !== bc) return ac - bc;
-        var al = a.w.lastQuizAt || 0, bl = b.w.lastQuizAt || 0;
-        if (al !== bl) return al - bl;
-        return a.jitter - b.jitter;
-      })
-      .map(function (x) { return x.w; });
-  }
-
-  // 외운(mastered) 단어는 매 라운드 최대 20%까지 복습용으로 섞이는데, 외운
-  // 단어 전체 개수가 적으면(예: 3개) 그 몇 개가 예외 없이 "매번" 나와버려서
-  // 반복되는 것처럼 느껴짐 (2026-09-20 확인된 문제). 그래서 한 번 퀴즈로
-  // 나온 외운 단어는 일정 기간(며칠) 동안 다시 복습 후보에서 빼서, 외운
-  // 단어가 적을 때는 오히려 복습 빈도를 낮춤 — 단어가 많아지면 자연히
-  // 로테이션되면서 원래 의도(가끔 복습)대로 동작함.
-  var MASTERED_REVIEW_COOLDOWN_MS = 10 * 24 * 60 * 60 * 1000; // 10일
-  function offMasteredCooldown(w) {
-    return !w.lastQuizAt || (Date.now() - w.lastQuizAt) >= MASTERED_REVIEW_COOLDOWN_MS;
-  }
-
+  // 시험대비 단어장은 단어 수가 적어서(현재 50개) index.html의 노출량 기반
+  // 우선순위/외운 단어 20% 섞기 로직이 필요 없음 — 매번 전체 단어를 랜덤
+  // 순서로 그대로 퀴즈에 낸다 (2026-09-24, index.html과 의도적으로 다름).
   function buildQuizQueue() {
-    var studied = words.filter(function (w) { return !!w.lastReviewed; });
-    var pool = studied.length > 0 ? studied : words.slice();
-    var unknown = sortByExposure(pool.filter(function (w) { return !w.mastered; }));
-    var known = sortByExposure(pool.filter(function (w) { return w.mastered && offMasteredCooldown(w); }));
-
-    var selected;
-    if (unknown.length < 40) {
-      selected = unknown.concat(known);
-    } else {
-      var unknownCount = Math.min(unknown.length, Math.round(QUIZ_LIMIT * 0.8));
-      var knownCount = Math.min(known.length, QUIZ_LIMIT - unknownCount);
-      selected = unknown.slice(0, unknownCount).concat(known.slice(0, knownCount));
-      var deficit = QUIZ_LIMIT - selected.length;
-      if (deficit > 0) {
-        var extra = unknown.slice(unknownCount).concat(known.slice(knownCount));
-        selected = selected.concat(extra.slice(0, deficit));
-      }
-    }
-    var target = Math.min(QUIZ_LIMIT, pool.length);
-    return shuffleArr(selected).slice(0, target);
+    return shuffleArr(words);
   }
 
   // Rough verb detector: this word list writes verb meanings in dictionary
