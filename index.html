@@ -2614,8 +2614,14 @@
   // 발음은 미국식(en-US) 목소리만 고른다. 예전엔 Evan(인윤이 Mac)이 없으면
   // "아무 영어 목소리"를 골라서, 폰에선 영국식(en-GB) 목소리가 잡히곤 했음
   // (2026-10-08). 기기마다 설치된 목소리가 달라서 이름 우선순위 → 아무 en-US 순.
-  var PREFERRED_US_VOICES = ["Evan", "Samantha", "Alex", "Ava", "Allison", "Aaron", "Nicky", "Tom",
-    "Google US English", "Microsoft Aria", "Microsoft Jenny", "Microsoft Guy"];
+  // 남자 목소리 우선(2026-10-08 요청). 아이폰/맥: Evan·Aaron·Alex·Tom·Nathan·Fred,
+  // 윈도우: Microsoft Guy 등, 안드로이드 구글 TTS: en-us-x-iol/iom/tpd(남성).
+  // 남자 미국 목소리가 하나도 없는 기기에서만 아래 여자 목소리로 넘어감.
+  var PREFERRED_US_VOICES = ["Evan", "Aaron", "Alex", "Tom", "Nathan", "Fred",
+    "Microsoft Guy", "Microsoft Davis", "Microsoft Andrew", "Microsoft Christopher", "Microsoft Eric",
+    "Microsoft Brian", "Microsoft Roger", "Microsoft Steffan",
+    "en-us-x-iol", "en-us-x-iom", "en-us-x-tpd",
+    "Samantha", "Ava", "Allison", "Nicky", "Google US English", "Microsoft Aria", "Microsoft Jenny"];
   var cachedVoice = null;
   var voicesReady = false;
 
