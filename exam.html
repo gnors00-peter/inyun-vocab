@@ -2544,87 +2544,37 @@
     });
   }
 
-  // 발음은 미국식(en-US) 목소리만 고른다. 예전엔 Evan(인윤이 Mac)이 없으면
-  // "아무 영어 목소리"를 골라서, 폰에선 영국식(en-GB) 목소리가 잡히곤 했음
-  // (2026-10-08). 기기마다 설치된 목소리가 달라서 이름 우선순위 → 아무 en-US 순.
-  // 남자 목소리 우선(2026-10-08 요청). 아이폰/맥: Evan·Aaron·Alex·Tom·Nathan·Fred,
-  // 윈도우: Microsoft Guy 등, 안드로이드 구글 TTS: en-us-x-iol/iom/tpd(남성).
-  // 남자 미국 목소리가 하나도 없는 기기에서만 아래 여자 목소리로 넘어감.
-  var PREFERRED_US_VOICES = ["Evan", "Aaron", "Alex", "Tom", "Nathan", "Fred",
-    "Microsoft Guy", "Microsoft Davis", "Microsoft Andrew", "Microsoft Christopher", "Microsoft Eric",
-    "Microsoft Brian", "Microsoft Roger", "Microsoft Steffan",
-    "en-us-x-iol", "en-us-x-iom", "en-us-x-tpd",
-    "Samantha", "Ava", "Allison", "Nicky", "Google US English", "Microsoft Aria", "Microsoft Jenny"];
-  // 목록에는 있는데 실제로는 재생이 안 되는 목소리가 있음(다운로드 안 된 남자
-  // 목소리 등 — 2026-10-08 남자 목소리로 바꾼 뒤 폰에서 소리가 아예 안 남).
-  // 그래서 후보를 순서대로 시도: 1.2초 안에 소리가 시작(onstart)되지 않거나
-  // 에러가 나면 다음 후보로, 마지막엔 voice 지정 없이 lang="en-US"만으로 재생.
-  // 실제로 소리가 난 목소리는 기억해서(localStorage) 다음부터 바로 그걸 씀.
-  var VOICE_KEY = "inyunVoiceName";
-  var speakToken = 0;
-
+  // 발음 목소리: Evan(미국식 남자) 하나만 찾고, 없으면 voice를 지정하지 않고
+  // lang="en-US"만 줘서 기기 기본 미국 목소리로 재생(2026-10-08 확정).
+  // 시행착오 기록: "아무 영어 목소리" → 폰에서 영국식이 걸림 / "남자 목소리
+  // 우선순위 목록" → 아이폰 장난용 목소리(Fred 등)가 걸려 이상하게 들림 /
+  // "안 되면 다음 목소리로 재시도" → 아이폰에서 아예 무음. 그래서 단순하게 감.
+  // 아이폰에서 Evan은 기본 설치가 아니라서 설정에서 내려받아야 함.
   function isUsVoice(v) { return /^en[-_]US/i.test(v.lang || ""); }
 
-  function voiceCandidates() {
-    var us = (window.speechSynthesis.getVoices() || []).filter(isUsVoice);
-    var ordered = [];
-    function add(v) { if (ordered.indexOf(v) === -1) ordered.push(v); }
-    var saved = null;
-    try { saved = localStorage.getItem(VOICE_KEY); } catch (e) {}
-    if (saved) us.forEach(function (v) { if (v.name === saved) add(v); });
-    PREFERRED_US_VOICES.forEach(function (name) {
-      var n = name.toLowerCase();
-      us.forEach(function (v) { if (v.name.toLowerCase().indexOf(n) !== -1) add(v); });
+  function findEvan() {
+    var evans = (window.speechSynthesis.getVoices() || []).filter(function (v) {
+      return isUsVoice(v) && /^evan\b/i.test(v.name);
     });
-    us.forEach(function (v) { if (v.localService) add(v); });
-    return ordered.slice(0, 3).concat([null]);
+    function rank(v) { return /premium/i.test(v.name + v.voiceURI) ? 0 : /enhanced/i.test(v.name + v.voiceURI) ? 1 : 2; }
+    evans.sort(function (a, b) { return rank(a) - rank(b); });
+    return evans[0] || null;
   }
 
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = function () { window.speechSynthesis.getVoices(); };
-  }
+  if ("speechSynthesis" in window) window.speechSynthesis.getVoices();
 
   function speak(text) {
-    if (!("speechSynthesis" in window)) return;
-    var synth = window.speechSynthesis;
-    var myToken = ++speakToken;
-    var cands = voiceCandidates();
-    var idx = 0;
-
-    function attempt() {
-      if (myToken !== speakToken || idx >= cands.length) return;
-      var v = cands[idx++];
-      var started = false, moved = false;
-      function next() {
-        if (moved || started || myToken !== speakToken) return;
-        if (synth.speaking && !synth.pending) return; // onstart를 안 쏘는 기기에서 재생 중인 걸 끊지 않게
-        moved = true;
-        synth.cancel();
-        attempt();
-      }
-      try {
-        var u = new SpeechSynthesisUtterance(text);
-        u.lang = "en-US";
-        u.rate = 0.8;
-        u.pitch = 0.92;
-        if (v) u.voice = v;
-        u.onstart = function () {
-          started = true;
-          try { if (v) localStorage.setItem(VOICE_KEY, v.name); else localStorage.removeItem(VOICE_KEY); } catch (e) {}
-        };
-        u.onerror = function (e) {
-          if (e && (e.error === "interrupted" || e.error === "canceled")) return;
-          next();
-        };
-        if (synth.speaking || synth.pending) synth.cancel();
-        synth.speak(u);
-        if (idx < cands.length) setTimeout(next, 1200);
-      } catch (e) {
-        next();
-      }
-    }
-    attempt();
+    try {
+      if (!("speechSynthesis" in window)) return;
+      var synth = window.speechSynthesis;
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.rate = 0.8;
+      var evan = findEvan();
+      if (evan) u.voice = evan;
+      if (synth.speaking || synth.pending) synth.cancel();
+      synth.speak(u);
+    } catch (e) {}
   }
 
   // ---------- tabs ----------
