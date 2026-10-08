@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>발음 목소리 테스트</title>
+<style>
+  body { font-family: -apple-system, sans-serif; margin: 0; padding: 16px; background: #f6f8fc; color: #222; }
+  h2 { font-size: 18px; margin: 0 0 6px; }
+  p { font-size: 13px; color: #555; margin: 0 0 12px; line-height: 1.5; }
+  button { font-size: 15px; padding: 10px 14px; border-radius: 10px; border: 1px solid #4d94ec; background: #fff; color: #2c5fa8; }
+  .big { width: 100%; margin-bottom: 8px; background: #4d94ec; color: #fff; }
+  .v { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid #dde4f0; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+  .v .info { flex: 1; min-width: 0; font-size: 13px; overflow-wrap: anywhere; }
+  .v .name { font-weight: 700; font-size: 15px; }
+  .v .meta { color: #888; font-size: 11px; }
+  .st { font-size: 12px; font-weight: 700; min-width: 54px; text-align: right; }
+  .ok { color: #1a9e62; } .bad { color: #d6385a; } .wait { color: #888; }
+  #log { white-space: pre-wrap; font-size: 11px; background: #fff; border: 1px solid #dde4f0; border-radius: 10px; padding: 10px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<h2>🔊 발음 목소리 테스트</h2>
+<p>각 목소리의 ▶ 버튼을 눌러 "apple"이 들리는지 확인해 주세요. 오른쪽에 "재생됨 ✅"이 뜨는데 소리가 안 들리면, 그 목소리는 이 폰에서 무음인 거예요.</p>
+<button class="big" id="def">▶ 기본 미국 목소리 (목소리 지정 없음)</button>
+<div id="list"><p>목소리 목록 불러오는 중...</p></div>
+<div id="log"></div>
+<script>
+(function () {
+  var log = document.getElementById("log");
+  function line(s) { log.textContent += s + "\n"; }
+  line("기기: " + navigator.userAgent);
+  if (!("speechSynthesis" in window)) { line("이 브라우저는 음성 읽기를 지원하지 않아요."); return; }
+  var synth = window.speechSynthesis;
+
+  function play(voice, stEl) {
+    var u = new SpeechSynthesisUtterance("apple");
+    u.lang = "en-US";
+    u.rate = 0.7;
+    if (voice) u.voice = voice;
+    var label = voice ? voice.name : "기본";
+    if (stEl) { stEl.textContent = "..."; stEl.className = "st wait"; }
+    u.onstart = function () { line(label + ": 재생 시작"); if (stEl) { stEl.textContent = "재생됨 ✅"; stEl.className = "st ok"; } };
+    u.onend = function () { line(label + ": 재생 끝"); };
+    u.onerror = function (e) { line(label + ": 오류 " + (e && e.error)); if (stEl) { stEl.textContent = "오류 ❌"; stEl.className = "st bad"; } };
+    if (synth.speaking || synth.pending) synth.cancel();
+    synth.speak(u);
+  }
+
+  document.getElementById("def").onclick = function () { play(null, null); };
+
+  function render() {
+    var voices = (synth.getVoices() || []).filter(function (v) { return /^en/i.test(v.lang || ""); });
+    voices.sort(function (a, b) {
+      var au = /^en[-_]US/i.test(a.lang) ? 0 : 1, bu = /^en[-_]US/i.test(b.lang) ? 0 : 1;
+      return au - bu || a.name.localeCompare(b.name);
+    });
+    var box = document.getElementById("list");
+    if (!voices.length) { box.innerHTML = "<p>영어 목소리를 찾지 못했어요. 잠시 뒤 새로고침해 주세요.</p>"; return; }
+    box.innerHTML = "";
+    voices.forEach(function (v) {
+      var row = document.createElement("div");
+      row.className = "v";
+      var info = document.createElement("div");
+      info.className = "info";
+      info.innerHTML = '<div class="name"></div><div class="meta"></div>';
+      info.querySelector(".name").textContent = v.name + (/^evan/i.test(v.name) ? "  ← 앱에서 쓰는 목소리" : "");
+      info.querySelector(".meta").textContent = v.lang + " · " + v.voiceURI;
+      var st = document.createElement("span");
+      st.className = "st";
+      var btn = document.createElement("button");
+      btn.textContent = "▶";
+      btn.onclick = function () { play(v, st); };
+      row.appendChild(info); row.appendChild(st); row.appendChild(btn);
+      box.appendChild(row);
+    });
+    line("영어 목소리 " + voices.length + "개");
+  }
+  render();
+  synth.onvoiceschanged = render;
+})();
+</script>
+</body>
+</html>
