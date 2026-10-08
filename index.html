@@ -2636,7 +2636,7 @@
       var synth = window.speechSynthesis;
       var u = new SpeechSynthesisUtterance(text);
       u.lang = "en-US";
-      u.rate = 0.8;
+      u.rate = 0.7;
       var evan = findEvan();
       if (evan) u.voice = evan;
       if (synth.speaking || synth.pending) synth.cancel();
