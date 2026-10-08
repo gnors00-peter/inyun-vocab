@@ -2555,46 +2555,76 @@
     "Microsoft Brian", "Microsoft Roger", "Microsoft Steffan",
     "en-us-x-iol", "en-us-x-iom", "en-us-x-tpd",
     "Samantha", "Ava", "Allison", "Nicky", "Google US English", "Microsoft Aria", "Microsoft Jenny"];
-  var cachedVoice = null;
-  var voicesReady = false;
+  // 목록에는 있는데 실제로는 재생이 안 되는 목소리가 있음(다운로드 안 된 남자
+  // 목소리 등 — 2026-10-08 남자 목소리로 바꾼 뒤 폰에서 소리가 아예 안 남).
+  // 그래서 후보를 순서대로 시도: 1.2초 안에 소리가 시작(onstart)되지 않거나
+  // 에러가 나면 다음 후보로, 마지막엔 voice 지정 없이 lang="en-US"만으로 재생.
+  // 실제로 소리가 난 목소리는 기억해서(localStorage) 다음부터 바로 그걸 씀.
+  var VOICE_KEY = "inyunVoiceName";
+  var speakToken = 0;
 
   function isUsVoice(v) { return /^en[-_]US/i.test(v.lang || ""); }
 
-  function pickVoice() {
-    if (!("speechSynthesis" in window)) return null;
-    var voices = window.speechSynthesis.getVoices() || [];
-    var us = voices.filter(isUsVoice);
-    if (us.length === 0) return null; // 미국식 목소리가 없으면 u.lang="en-US"만 지정해서 브라우저에 맡김
-    for (var i = 0; i < PREFERRED_US_VOICES.length; i++) {
-      var name = PREFERRED_US_VOICES[i].toLowerCase();
-      var hit = us.find(function (v) { return v.name.toLowerCase().indexOf(name) !== -1; });
-      if (hit) return hit;
-    }
-    return us.find(function (v) { return v.localService; }) || us[0];
+  function voiceCandidates() {
+    var us = (window.speechSynthesis.getVoices() || []).filter(isUsVoice);
+    var ordered = [];
+    function add(v) { if (ordered.indexOf(v) === -1) ordered.push(v); }
+    var saved = null;
+    try { saved = localStorage.getItem(VOICE_KEY); } catch (e) {}
+    if (saved) us.forEach(function (v) { if (v.name === saved) add(v); });
+    PREFERRED_US_VOICES.forEach(function (name) {
+      var n = name.toLowerCase();
+      us.forEach(function (v) { if (v.name.toLowerCase().indexOf(n) !== -1) add(v); });
+    });
+    us.forEach(function (v) { if (v.localService) add(v); });
+    return ordered.slice(0, 3).concat([null]);
   }
 
-  function ensureVoice() {
-    if (!("speechSynthesis" in window)) return;
-    cachedVoice = pickVoice();
-    if (cachedVoice) voicesReady = true;
-  }
-  ensureVoice();
   if ("speechSynthesis" in window) {
-    window.speechSynthesis.onvoiceschanged = ensureVoice;
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = function () { window.speechSynthesis.getVoices(); };
   }
 
   function speak(text) {
-    try {
-      if (!("speechSynthesis" in window)) return;
-      if (!voicesReady) ensureVoice();
-      var u = new SpeechSynthesisUtterance(text);
-      u.lang = "en-US";
-      u.rate = 0.8;
-      u.pitch = 0.92;
-      if (cachedVoice) u.voice = cachedVoice;
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(u);
-    } catch (e) {}
+    if (!("speechSynthesis" in window)) return;
+    var synth = window.speechSynthesis;
+    var myToken = ++speakToken;
+    var cands = voiceCandidates();
+    var idx = 0;
+
+    function attempt() {
+      if (myToken !== speakToken || idx >= cands.length) return;
+      var v = cands[idx++];
+      var started = false, moved = false;
+      function next() {
+        if (moved || started || myToken !== speakToken) return;
+        if (synth.speaking && !synth.pending) return; // onstart를 안 쏘는 기기에서 재생 중인 걸 끊지 않게
+        moved = true;
+        synth.cancel();
+        attempt();
+      }
+      try {
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-US";
+        u.rate = 0.8;
+        u.pitch = 0.92;
+        if (v) u.voice = v;
+        u.onstart = function () {
+          started = true;
+          try { if (v) localStorage.setItem(VOICE_KEY, v.name); else localStorage.removeItem(VOICE_KEY); } catch (e) {}
+        };
+        u.onerror = function (e) {
+          if (e && (e.error === "interrupted" || e.error === "canceled")) return;
+          next();
+        };
+        if (synth.speaking || synth.pending) synth.cancel();
+        synth.speak(u);
+        if (idx < cands.length) setTimeout(next, 1200);
+      } catch (e) {
+        next();
+      }
+    }
+    attempt();
   }
 
   // ---------- tabs ----------
