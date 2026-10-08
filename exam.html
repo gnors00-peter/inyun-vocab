@@ -268,11 +268,11 @@
     background: rgba(255,255,255,0.3);
     border: 1px solid rgba(255,255,255,0.5);
     color: #fff;
-    width: 34px;
-    height: 34px;
+    width: 51px;
+    height: 51px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 23px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -529,6 +529,7 @@
     border-radius: 999px;
   }
   .icon-btn:hover { background: var(--paper-line); color: var(--ink); }
+  .icon-btn.speak-icon { font-size: 23px; }
   /* 폰 화면: 단어 목록/기록 표가 화면 폭을 넘어가 옆으로 스크롤해야 하던 문제 —
      긴 숙어("have a full stomach")가 줄바꿈 금지라 표가 넓어졌음. 폰에선 촘촘하게 + 줄바꿈 허용. */
   @media (max-width: 560px) {
@@ -542,6 +543,7 @@
     .word-table .badge { padding: 2px 6px; font-size: 10px; }
     .word-table .row-actions { flex-direction: column; gap: 0; }
     .word-table .icon-btn { padding: 3px 4px; font-size: 14px; }
+    .word-table .icon-btn.speak-icon { font-size: 21px; }
   }
 
   /* ---- Confirm modal (browser confirm()/alert() don't run inside the artifact sandbox) ---- */
@@ -1863,7 +1865,7 @@
         '<td><span class="badge ' + (w.mastered ? "mastered" : "learning") + '">' + (w.mastered ? "외움" : "학습중") + '</span></td>' +
         '<td>' +
           '<div class="row-actions">' +
-            '<button class="icon-btn" data-speak="' + w.id + '" title="발음">🔊</button>' +
+            '<button class="icon-btn speak-icon" data-speak="' + w.id + '" title="발음">🔊</button>' +
             '<button class="icon-btn" data-del="' + w.id + '" title="삭제">🗑️</button>' +
           '</div>' +
         '</td>' +
@@ -2542,23 +2544,27 @@
     });
   }
 
-  // Pronunciation voice: fixed to "Evan" (installed on 인윤이's Mac).
-  // Falls back to any English voice if Evan isn't available on whatever
-  // device happens to open this page.
-  var PREFERRED_VOICE_NAME = "Evan";
+  // 발음은 미국식(en-US) 목소리만 고른다. 예전엔 Evan(인윤이 Mac)이 없으면
+  // "아무 영어 목소리"를 골라서, 폰에선 영국식(en-GB) 목소리가 잡히곤 했음
+  // (2026-10-08). 기기마다 설치된 목소리가 달라서 이름 우선순위 → 아무 en-US 순.
+  var PREFERRED_US_VOICES = ["Evan", "Samantha", "Alex", "Ava", "Allison", "Aaron", "Nicky", "Tom",
+    "Google US English", "Microsoft Aria", "Microsoft Jenny", "Microsoft Guy"];
   var cachedVoice = null;
   var voicesReady = false;
+
+  function isUsVoice(v) { return /^en[-_]US/i.test(v.lang || ""); }
 
   function pickVoice() {
     if (!("speechSynthesis" in window)) return null;
     var voices = window.speechSynthesis.getVoices() || [];
-    if (voices.length === 0) return null;
-    var exact = voices.find(function (v) { return v.name === PREFERRED_VOICE_NAME; });
-    if (exact) return exact;
-    var partial = voices.find(function (v) { return v.name.toLowerCase().indexOf(PREFERRED_VOICE_NAME.toLowerCase()) !== -1; });
-    if (partial) return partial;
-    var enVoice = voices.find(function (v) { return /^en/i.test(v.lang); });
-    return enVoice || voices[0] || null;
+    var us = voices.filter(isUsVoice);
+    if (us.length === 0) return null; // 미국식 목소리가 없으면 u.lang="en-US"만 지정해서 브라우저에 맡김
+    for (var i = 0; i < PREFERRED_US_VOICES.length; i++) {
+      var name = PREFERRED_US_VOICES[i].toLowerCase();
+      var hit = us.find(function (v) { return v.name.toLowerCase().indexOf(name) !== -1; });
+      if (hit) return hit;
+    }
+    return us.find(function (v) { return v.localService; }) || us[0];
   }
 
   function ensureVoice() {
@@ -2579,10 +2585,7 @@
       u.lang = "en-US";
       u.rate = 0.8;
       u.pitch = 0.92;
-      if (cachedVoice) {
-        u.voice = cachedVoice;
-        u.lang = cachedVoice.lang || "en-US";
-      }
+      if (cachedVoice) u.voice = cachedVoice;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
     } catch (e) {}
