@@ -2636,6 +2636,11 @@
     try {
       firebase.initializeApp(firebaseConfig);
       dbRef = firebase.firestore();
+      // 오프라인 저장(IndexedDB): 저장 요청을 폰에 먼저 기록해 두고 서버로 보냄.
+      // 퀴즈 결과 화면을 본 직후 아이폰에서 앱을 닫으면 아직 서버에 못 간 퀴즈
+      // 기록이 사라지던 문제(2026-10-20/21 오후 퀴즈가 통째로 누락) 해결 — 닫혀도
+      // 다음에 앱을 열 때 자동으로 전송됨. 지원 안 되는 환경이면 그냥 예전처럼 동작.
+      dbRef.enablePersistence({ synchronizeTabs: true }).catch(function () {});
     } catch (e) {
       byId("dbStatus").textContent = "저장소 사용 불가";
       render();
