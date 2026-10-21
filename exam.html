@@ -994,10 +994,11 @@
     if (!dbRef) return;
     var patch = { date: date };
     patch[kind] = dayTimeTotals[kind];
-    var ref = dbRef.doc("examDailyLogs/" + date);
-    ref.update(patch).catch(function () {
-      try { ref.set(patch).catch(function () {}); } catch (e2) {}
-    });
+    // merge:true — 시간 필드만 바꾸고 entries(학습 기록)는 절대 건드리지 않음.
+    // 예전엔 update() 실패 시 set(patch)로 문서를 통째로 덮어써서, 그날 첫 카드
+    // 기록이 매일 하나씩 지워지고(문서가 아직 없을 때 update가 항상 실패),
+    // 네트워크가 끊기면 그날 기록 전체가 날아가는 버그가 있었음(2026-10-21 발견).
+    try { dbRef.doc("examDailyLogs/" + date).set(patch, { merge: true }).catch(function () {}); } catch (e) {}
   }
 
   function formatDuration(ms) {
